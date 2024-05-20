@@ -9,9 +9,11 @@ def generate_taps(samples_per_symbol, bt):
     gaussian_taps = filter.firdes.gaussian(
         1,                       # gain
         samples_per_symbol,      # symbol_rate
-        bt,                      # bandwidth * symbol time
-        ntaps                    # number of taps
+        bt,                      # bandwidth time product
+        ntaps                    # number of filter taps
     )
 
-    taps = np.convolve(np.array(gaussian_taps), np.ones(samples_per_symbol))
+    taps = np.convolve(np.array(gaussian_taps), np.ones(samples_per_symbol))    
     return taps
+
+

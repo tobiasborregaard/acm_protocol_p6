@@ -6,7 +6,7 @@
 #
 # GNU Radio Python Flow Graph
 # Title: acm_phy_layer
-# Author: Ckjaer
+# Author: CS6 - 615
 # GNU Radio version: 3.10.9.2
 
 from PyQt5 import Qt
@@ -35,7 +35,6 @@ import numpy as np
 import physical_layer_transmitter_epy_block_0 as epy_block_0  # embedded python block
 import physical_layer_transmitter_epy_block_0_0 as epy_block_0_0  # embedded python block
 import physical_layer_transmitter_epy_block_0_0_0 as epy_block_0_0_0  # embedded python block
-import physical_layer_transmitter_epy_block_0_1 as epy_block_0_1  # embedded python block
 import physical_layer_transmitter_epy_block_1_0_0 as epy_block_1_0_0  # embedded python block
 import physical_layer_transmitter_epy_block_1_0_0_0 as epy_block_1_0_0_0  # embedded python block
 import physical_layer_transmitter_epy_block_2_0 as epy_block_2_0  # embedded python block
@@ -80,12 +79,11 @@ class physical_layer_transmitter(gr.top_block, Qt.QWidget):
         ##################################################
         # Variables
         ##################################################
+        self.sps = sps = 4
         self.samp_rate = samp_rate = 200e3
         self.bandwidth = bandwidth = 25000
         self.repack_size = repack_size = 1
-        self.interpolation = interpolation = int(np.ceil(samp_rate/(th.modcod(bandwidth, "1"))))
-        self.bp_filter_0 = bp_filter_0 = firdes.complex_band_pass(1.0, samp_rate, -bandwidth/2 - 200, bandwidth/2 + 200, 200, window.WIN_RECTANGULAR, 6.76)
-        self.bp_filter = bp_filter = firdes.complex_band_pass(1.0, samp_rate, -th.modcod(bandwidth, "7")/2 - 200, th.modcod(bandwidth, "7")/2 + 200, 200, window.WIN_RECTANGULAR, 6.76)
+        self.decimation = decimation = samp_rate/(sps*th.modcod(bandwidth, "1"))
 
         ##################################################
         # Blocks
@@ -94,7 +92,7 @@ class physical_layer_transmitter(gr.top_block, Qt.QWidget):
         self.zeromq_sub_msg_source_0 = zeromq.sub_msg_source('tcp://localhost:5555', 100, False)
         self.zeromq_pub_msg_sink_0 = zeromq.pub_msg_sink('tcp://*:5556', 100, True)
         self.qtgui_freq_sink_x_0 = qtgui.freq_sink_c(
-            1024, #size
+            (2**15), #size
             window.WIN_BLACKMAN_hARRIS, #wintype
             0, #fc
             samp_rate, #bw
@@ -135,24 +133,22 @@ class physical_layer_transmitter(gr.top_block, Qt.QWidget):
 
         self._qtgui_freq_sink_x_0_win = sip.wrapinstance(self.qtgui_freq_sink_x_0.qwidget(), Qt.QWidget)
         self.top_layout.addWidget(self._qtgui_freq_sink_x_0_win)
-        self.interp_fir_filter_xxx_0_0 = filter.interp_fir_filter_fff(1, taps.generate_taps(4, 0.25))
+        self.mmse_resampler_xx_1 = filter.mmse_resampler_cc(0, decimation)
+        self.mmse_resampler_xx_0 = filter.mmse_resampler_cc(0, (1/decimation))
+        self.interp_fir_filter_xxx_0_0 = filter.interp_fir_filter_fff(sps, taps.generate_taps(sps, 0.25))
         self.interp_fir_filter_xxx_0_0.declare_sample_delay(0)
-        self.interp_fir_filter_xxx_0 = filter.interp_fir_filter_fff(1, taps.generate_taps(4, 0.25))
+        self.interp_fir_filter_xxx_0 = filter.interp_fir_filter_fff(sps, taps.generate_taps(sps, 0.25))
         self.interp_fir_filter_xxx_0.declare_sample_delay(0)
-        self.g4fsk_decoding_0 = g4fsk_decoding(
-            movav=30,
-        )
-        self.freq_xlating_fir_filter_xxx_0 = filter.freq_xlating_fir_filter_fcc(1, bp_filter_0, (bandwidth*2/3 + 200), samp_rate)
+        self.g4fsk_decoding_0 = g4fsk_decoding()
         self.epy_block_2_0 = epy_block_2_0.blk(fft_size=2**15, bandwidth=25e3, samplerate=samp_rate, addr="snr_meas")
         self.epy_block_1_0_0_0 = epy_block_1_0_0_0.blk(addr='demux_1')
         self.epy_block_1_0_0 = epy_block_1_0_0.blk(addr='mux_1')
-        self.epy_block_0_1 = epy_block_0_1.blk()
         self.epy_block_0_0_0 = epy_block_0_0_0.blk(snr=20, addr="awgn")
         self.epy_block_0_0 = epy_block_0_0.blk(addr='demux')
-        self.epy_block_0 = epy_block_0.blk(addr='mux', interpolation=int(np.ceil(samp_rate/(th.modcod(bandwidth, "1")))), samp_rate=samp_rate, bandwidth=bandwidth)
+        self.epy_block_0 = epy_block_0.blk(addr='mux', samp_rate=samp_rate, bandwidth=bandwidth, sps=4)
         self.digital_symbol_sync_xx_1_0_0_0 = digital.symbol_sync_ff(
             digital.TED_SIGNAL_TIMES_SLOPE_ML,
-            interpolation,
+            sps,
             0.045,
             1.0,
             1.0,
@@ -164,7 +160,7 @@ class physical_layer_transmitter(gr.top_block, Qt.QWidget):
             [])
         self.digital_symbol_sync_xx_1_0_0 = digital.symbol_sync_ff(
             digital.TED_SIGNAL_TIMES_SLOPE_ML,
-            interpolation,
+            sps,
             0.045,
             1.0,
             1.0,
@@ -176,7 +172,7 @@ class physical_layer_transmitter(gr.top_block, Qt.QWidget):
             [])
         self.digital_symbol_sync_xx_1_0 = digital.symbol_sync_ff(
             digital.TED_SIGNAL_TIMES_SLOPE_ML,
-            interpolation,
+            sps,
             0.045,
             1.0,
             1.0,
@@ -191,27 +187,29 @@ class physical_layer_transmitter(gr.top_block, Qt.QWidget):
         self.digital_chunks_to_symbols_xx_0 = digital.chunks_to_symbols_bf([-1, 1], 1)
         self.digital_binary_slicer_fb_0_0 = digital.binary_slicer_fb()
         self.digital_binary_slicer_fb_0 = digital.binary_slicer_fb()
-        self.blocks_vco_f_1 = blocks.vco_f(samp_rate, (2*np.pi*bandwidth/3), 0.5)
+        self.blocks_vco_c_0 = blocks.vco_c(samp_rate, ((2*np.pi*th.modcod(bandwidth, "9"))/1.5), 0.5)
         self.blocks_throttle2_0 = blocks.throttle( gr.sizeof_char*1, samp_rate, True, 0 if "auto" == "auto" else max( int(float(0.1) * samp_rate) if "auto" == "time" else int(0.1), 1) )
         self.blocks_stream_to_vector_0 = blocks.stream_to_vector(gr.sizeof_gr_complex*1, (2**15))
-        self.blocks_packed_to_unpacked_xx_0 = blocks.packed_to_unpacked_bb(repack_size, gr.GR_MSB_FIRST)
-        self.blocks_null_sink_1 = blocks.null_sink(gr.sizeof_char*1)
-        self.blocks_msgpair_to_var_1 = blocks.msg_pair_to_var(self.set_interpolation)
+        self.blocks_repeat_0 = blocks.repeat(gr.sizeof_float*1, sps)
+        self.blocks_repack_bits_bb_0_0 = blocks.repack_bits_bb(8, repack_size, "", False, gr.GR_MSB_FIRST)
+        self.blocks_repack_bits_bb_0 = blocks.repack_bits_bb(repack_size, 8, "", False, gr.GR_MSB_FIRST)
+        self.blocks_null_sink_0 = blocks.null_sink(gr.sizeof_char*1)
+        self.blocks_msgpair_to_var_1 = blocks.msg_pair_to_var(self.set_decimation)
         self.blocks_msgpair_to_var_0 = blocks.msg_pair_to_var(self.set_repack_size)
         self.blocks_float_to_uchar_0 = blocks.float_to_uchar()
         self.analog_random_source_x_0 = blocks.vector_source_b(list(map(int, numpy.random.randint(0, 256, 1000))), True)
-        self.analog_quadrature_demod_cf_2 = analog.quadrature_demod_cf((samp_rate*2/(2*np.pi*bandwidth)))
+        self.analog_quadrature_demod_cf_2 = analog.quadrature_demod_cf(((samp_rate*2)/(2*np.pi*th.modcod(bandwidth, "9"))))
         self.analog_quadrature_demod_cf_1 = analog.quadrature_demod_cf(1)
         self.analog_quadrature_demod_cf_0 = analog.quadrature_demod_cf(1)
-        self.analog_frequency_modulator_fc_0_0 = analog.frequency_modulator_fc(((np.pi / 2) / 4))
-        self.analog_frequency_modulator_fc_0 = analog.frequency_modulator_fc(((np.pi / 2) / 4))
+        self.analog_frequency_modulator_fc_0_0 = analog.frequency_modulator_fc(((np.pi / 2) / sps))
+        self.analog_frequency_modulator_fc_0 = analog.frequency_modulator_fc(((np.pi / 2) / sps))
 
 
         ##################################################
         # Connections
         ##################################################
         self.msg_connect((self.epy_block_0, 'repack_out'), (self.blocks_msgpair_to_var_0, 'inpair'))
-        self.msg_connect((self.epy_block_0, 'interp_out'), (self.blocks_msgpair_to_var_1, 'inpair'))
+        self.msg_connect((self.epy_block_0, 'decim_out'), (self.blocks_msgpair_to_var_1, 'inpair'))
         self.msg_connect((self.epy_block_0, 'msg_out'), (self.zeromq_pub_msg_sink_0, 'in'))
         self.msg_connect((self.epy_block_0_0, 'msg_out'), (self.zeromq_pub_msg_sink_0, 'in'))
         self.msg_connect((self.epy_block_0_0_0, 'msg_out'), (self.zeromq_pub_msg_sink_0, 'in'))
@@ -223,21 +221,24 @@ class physical_layer_transmitter(gr.top_block, Qt.QWidget):
         self.msg_connect((self.zeromq_sub_msg_source_0, 'out'), (self.epy_block_0_0_0, 'msg_in'))
         self.msg_connect((self.zeromq_sub_msg_source_0, 'out'), (self.epy_block_1_0_0, 'msg_in'))
         self.msg_connect((self.zeromq_sub_msg_source_0, 'out'), (self.epy_block_1_0_0_0, 'msg_in'))
+        self.msg_connect((self.zeromq_sub_msg_source_0, 'out'), (self.epy_block_2_0, 'msg_in'))
         self.connect((self.analog_frequency_modulator_fc_0, 0), (self.epy_block_1_0_0, 2))
         self.connect((self.analog_frequency_modulator_fc_0_0, 0), (self.epy_block_1_0_0, 1))
         self.connect((self.analog_quadrature_demod_cf_0, 0), (self.digital_symbol_sync_xx_1_0, 0))
         self.connect((self.analog_quadrature_demod_cf_1, 0), (self.digital_symbol_sync_xx_1_0_0, 0))
         self.connect((self.analog_quadrature_demod_cf_2, 0), (self.digital_symbol_sync_xx_1_0_0_0, 0))
-        self.connect((self.analog_random_source_x_0, 0), (self.blocks_packed_to_unpacked_xx_0, 0))
+        self.connect((self.analog_random_source_x_0, 0), (self.blocks_repack_bits_bb_0_0, 0))
         self.connect((self.blocks_float_to_uchar_0, 0), (self.epy_block_1_0_0_0, 0))
-        self.connect((self.blocks_packed_to_unpacked_xx_0, 0), (self.blocks_throttle2_0, 0))
+        self.connect((self.blocks_repack_bits_bb_0, 0), (self.blocks_null_sink_0, 0))
+        self.connect((self.blocks_repack_bits_bb_0_0, 0), (self.blocks_throttle2_0, 0))
+        self.connect((self.blocks_repeat_0, 0), (self.analog_frequency_modulator_fc_0_0, 0))
         self.connect((self.blocks_stream_to_vector_0, 0), (self.epy_block_2_0, 0))
         self.connect((self.blocks_throttle2_0, 0), (self.epy_block_0, 0))
-        self.connect((self.blocks_vco_f_1, 0), (self.freq_xlating_fir_filter_xxx_0, 0))
+        self.connect((self.blocks_vco_c_0, 0), (self.epy_block_1_0_0, 0))
         self.connect((self.digital_binary_slicer_fb_0, 0), (self.epy_block_1_0_0_0, 2))
         self.connect((self.digital_binary_slicer_fb_0_0, 0), (self.epy_block_1_0_0_0, 1))
         self.connect((self.digital_chunks_to_symbols_xx_0, 0), (self.interp_fir_filter_xxx_0, 0))
-        self.connect((self.digital_chunks_to_symbols_xx_0_0, 0), (self.analog_frequency_modulator_fc_0_0, 0))
+        self.connect((self.digital_chunks_to_symbols_xx_0_0, 0), (self.blocks_repeat_0, 0))
         self.connect((self.digital_chunks_to_symbols_xx_1, 0), (self.interp_fir_filter_xxx_0_0, 0))
         self.connect((self.digital_symbol_sync_xx_1_0, 0), (self.digital_binary_slicer_fb_0, 0))
         self.connect((self.digital_symbol_sync_xx_1_0_0, 0), (self.digital_binary_slicer_fb_0_0, 0))
@@ -249,15 +250,15 @@ class physical_layer_transmitter(gr.top_block, Qt.QWidget):
         self.connect((self.epy_block_0_0, 1), (self.analog_quadrature_demod_cf_1, 0))
         self.connect((self.epy_block_0_0, 0), (self.analog_quadrature_demod_cf_2, 0))
         self.connect((self.epy_block_0_0_0, 0), (self.blocks_stream_to_vector_0, 0))
-        self.connect((self.epy_block_0_0_0, 0), (self.epy_block_0_0, 0))
+        self.connect((self.epy_block_0_0_0, 0), (self.mmse_resampler_xx_1, 0))
         self.connect((self.epy_block_0_0_0, 0), (self.qtgui_freq_sink_x_0, 0))
-        self.connect((self.epy_block_0_1, 0), (self.blocks_vco_f_1, 0))
-        self.connect((self.epy_block_1_0_0, 0), (self.epy_block_0_0_0, 0))
-        self.connect((self.epy_block_1_0_0_0, 0), (self.blocks_null_sink_1, 0))
-        self.connect((self.freq_xlating_fir_filter_xxx_0, 0), (self.epy_block_1_0_0, 0))
+        self.connect((self.epy_block_1_0_0, 0), (self.mmse_resampler_xx_0, 0))
+        self.connect((self.epy_block_1_0_0_0, 0), (self.blocks_repack_bits_bb_0, 0))
         self.connect((self.g4fsk_decoding_0, 0), (self.blocks_float_to_uchar_0, 0))
         self.connect((self.interp_fir_filter_xxx_0, 0), (self.analog_frequency_modulator_fc_0, 0))
-        self.connect((self.interp_fir_filter_xxx_0_0, 0), (self.epy_block_0_1, 0))
+        self.connect((self.interp_fir_filter_xxx_0_0, 0), (self.blocks_vco_c_0, 0))
+        self.connect((self.mmse_resampler_xx_0, 0), (self.epy_block_0_0_0, 0))
+        self.connect((self.mmse_resampler_xx_1, 0), (self.epy_block_0_0, 0))
 
 
     def closeEvent(self, event):
@@ -268,15 +269,28 @@ class physical_layer_transmitter(gr.top_block, Qt.QWidget):
 
         event.accept()
 
+    def get_sps(self):
+        return self.sps
+
+    def set_sps(self, sps):
+        self.sps = sps
+        self.set_decimation(self.samp_rate/(self.sps*th.modcod(self.bandwidth, "1")))
+        self.analog_frequency_modulator_fc_0.set_sensitivity(((np.pi / 2) / self.sps))
+        self.analog_frequency_modulator_fc_0_0.set_sensitivity(((np.pi / 2) / self.sps))
+        self.blocks_repeat_0.set_interpolation(self.sps)
+        self.digital_symbol_sync_xx_1_0.set_sps(self.sps)
+        self.digital_symbol_sync_xx_1_0_0.set_sps(self.sps)
+        self.digital_symbol_sync_xx_1_0_0_0.set_sps(self.sps)
+        self.interp_fir_filter_xxx_0.set_taps(taps.generate_taps(self.sps, 0.25))
+        self.interp_fir_filter_xxx_0_0.set_taps(taps.generate_taps(self.sps, 0.25))
+
     def get_samp_rate(self):
         return self.samp_rate
 
     def set_samp_rate(self, samp_rate):
         self.samp_rate = samp_rate
-        self.set_bp_filter(firdes.complex_band_pass(1.0, self.samp_rate, -th.modcod(self.bandwidth, "7")/2 - 200, th.modcod(self.bandwidth, "7")/2 + 200, 200, window.WIN_RECTANGULAR, 6.76))
-        self.set_bp_filter_0(firdes.complex_band_pass(1.0, self.samp_rate, -self.bandwidth/2 - 200, self.bandwidth/2 + 200, 200, window.WIN_RECTANGULAR, 6.76))
-        self.set_interpolation(int(np.ceil(self.samp_rate/(th.modcod(self.bandwidth, "1")))))
-        self.analog_quadrature_demod_cf_2.set_gain((self.samp_rate*2/(2*np.pi*self.bandwidth)))
+        self.set_decimation(self.samp_rate/(self.sps*th.modcod(self.bandwidth, "1")))
+        self.analog_quadrature_demod_cf_2.set_gain(((self.samp_rate*2)/(2*np.pi*th.modcod(self.bandwidth, "9"))))
         self.blocks_throttle2_0.set_sample_rate(self.samp_rate)
         self.epy_block_0.samp_rate = self.samp_rate
         self.epy_block_2_0.samplerate = self.samp_rate
@@ -287,40 +301,25 @@ class physical_layer_transmitter(gr.top_block, Qt.QWidget):
 
     def set_bandwidth(self, bandwidth):
         self.bandwidth = bandwidth
-        self.set_bp_filter(firdes.complex_band_pass(1.0, self.samp_rate, -th.modcod(self.bandwidth, "7")/2 - 200, th.modcod(self.bandwidth, "7")/2 + 200, 200, window.WIN_RECTANGULAR, 6.76))
-        self.set_bp_filter_0(firdes.complex_band_pass(1.0, self.samp_rate, -self.bandwidth/2 - 200, self.bandwidth/2 + 200, 200, window.WIN_RECTANGULAR, 6.76))
-        self.set_interpolation(int(np.ceil(self.samp_rate/(th.modcod(self.bandwidth, "1")))))
-        self.analog_quadrature_demod_cf_2.set_gain((self.samp_rate*2/(2*np.pi*self.bandwidth)))
+        self.set_decimation(self.samp_rate/(self.sps*th.modcod(self.bandwidth, "1")))
+        self.analog_quadrature_demod_cf_2.set_gain(((self.samp_rate*2)/(2*np.pi*th.modcod(self.bandwidth, "9"))))
         self.epy_block_0.bandwidth = self.bandwidth
-        self.freq_xlating_fir_filter_xxx_0.set_center_freq((self.bandwidth*2/3 + 200))
 
     def get_repack_size(self):
         return self.repack_size
 
     def set_repack_size(self, repack_size):
         self.repack_size = repack_size
+        self.blocks_repack_bits_bb_0.set_k_and_l(self.repack_size,8)
+        self.blocks_repack_bits_bb_0_0.set_k_and_l(8,self.repack_size)
 
-    def get_interpolation(self):
-        return self.interpolation
+    def get_decimation(self):
+        return self.decimation
 
-    def set_interpolation(self, interpolation):
-        self.interpolation = interpolation
-        self.digital_symbol_sync_xx_1_0.set_sps(self.interpolation)
-        self.digital_symbol_sync_xx_1_0_0.set_sps(self.interpolation)
-        self.digital_symbol_sync_xx_1_0_0_0.set_sps(self.interpolation)
-
-    def get_bp_filter_0(self):
-        return self.bp_filter_0
-
-    def set_bp_filter_0(self, bp_filter_0):
-        self.bp_filter_0 = bp_filter_0
-        self.freq_xlating_fir_filter_xxx_0.set_taps(self.bp_filter_0)
-
-    def get_bp_filter(self):
-        return self.bp_filter
-
-    def set_bp_filter(self, bp_filter):
-        self.bp_filter = bp_filter
+    def set_decimation(self, decimation):
+        self.decimation = decimation
+        self.mmse_resampler_xx_0.set_resamp_ratio((1/self.decimation))
+        self.mmse_resampler_xx_1.set_resamp_ratio(self.decimation)
 
 
 

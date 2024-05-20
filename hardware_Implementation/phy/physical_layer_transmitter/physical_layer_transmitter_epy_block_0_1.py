@@ -26,5 +26,5 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
 
     def work(self, input_items, output_items):
         """example: multiply with constant"""
-        output_items[0][:] = (input_items[0] + 8)/4
+        output_items[0][:] = (input_items[0] + 1.5) + 0.5
         return len(output_items[0])

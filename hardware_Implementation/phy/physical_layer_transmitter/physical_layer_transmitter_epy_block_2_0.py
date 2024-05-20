@@ -20,7 +20,6 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
         self.snr = np.zeros(int((samplerate/fft_size)))
         self.window = int(0.5*(samplerate/fft_size)) # 0.5 s window
         self.kernel = np.ones(self.window) / self.window
-        # self.portName = 'print_out'
 
         # message port setup
         self.message_in = 'msg_in'
@@ -80,22 +79,23 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
         fft = np.fft.fft(data) * 1/self.fft_size
         fft_shifted = np.fft.fftshift(fft) 
         magsquared = fft_shifted.real**2 + fft_shifted.imag**2
-        # print("fft")
         res = self.samplerate/self.fft_size
         span = int(self.bandwidth/res)
         center = int(self.fft_size/2)
         start =int( center - span/2)
         stop = int(center + span/2)
         sig = magsquared[start:stop]
-       
-        noise = np.append(magsquared[0:start-int(span/2)], magsquared[stop+int(span/2):])
+
+        
+        offset_span = int(span) 
+        noise = np.append(magsquared[0:start-offset_span], magsquared[stop+offset_span:])
         noise = span*np.mean(noise)
-        # noise = magsquared[:span]
 
         # print(f"Range %i - %i, Noise %.3f, len: %i" % (start, stop, 10*np.log10(np.mean(sig)), len(sig)))
     
         noise_power = 10*np.log10(noise)
         receive_power = 10*np.log10(np.sum(sig))
+        print(f"Receive Power: {receive_power:.3f} dB, Noise Power: {noise_power:.3f} dB")
         snr = receive_power - noise_power
 
         # Update the SNR buffer
@@ -105,7 +105,4 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
         # Calculate the moving average of the SNR with convolution
         self.snrAvg = np.convolve(self.snr, self.kernel, mode='valid')[-1]
         print(self.snrAvg)
-        # self.message_port_pub(pmt.intern(self.portName), pmt.to_pmt(self.snrAvg))
-        #output_items[0][:] = 10*np.log10(magsquared) # To view the fft in vector sink
-
         return 1

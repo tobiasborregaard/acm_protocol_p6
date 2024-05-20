@@ -3,24 +3,24 @@ from gnuradio import gr
 import pmt
 import json
 
-class blk(gr.interp_block):  # other base classes are basic_block, decim_block, interp_block
+class blk(gr.sync_block):  # other base classes are basic_block, decim_block, interp_block
     
-    def __init__(self, addr = "modcod", interpolation = 10, samp_rate=32000, bandwidth = 25000):  # only default arguments here
-        gr.interp_block.__init__(
+    def __init__(self, addr = "modcod", samp_rate=32000, bandwidth=25000, sps = 4):  # only default arguments here
+        gr.sync_block.__init__(
             self,
             name='DEMUX',   # will show up in GRC
             in_sig = [np.byte], 
             out_sig = [np.byte, np.byte, np.byte],
-            interp = interpolation
+            # interp = interpolation
         )
         self.addr = addr
         self._modcod = "1" # default modcod
         self.samp_rate = samp_rate
         self.bandwidth = bandwidth
         self.repack = 1
-    
+        self.decimation = 1
+        self.sps = sps
         # read MODCOD from json file      
-        #file_name = r"C:\Users\chri0\Documents\GitHub\SDR_Ground_Station\hardwareImplementation\phy\physical_layer_transmitter\MODCOD.json"
         self.filename = "MODCOD.json"
         self.json_data = None
         
@@ -35,7 +35,7 @@ class blk(gr.interp_block):  # other base classes are basic_block, decim_block, 
         self.message_out2 = 'repack_out'
         self.message_port_register_out(pmt.intern(self.message_out2))
 
-        self.message_out3 = 'interp_out'
+        self.message_out3 = 'decim_out'
         self.message_port_register_out(pmt.intern(self.message_out3))
 
 
@@ -61,20 +61,21 @@ class blk(gr.interp_block):  # other base classes are basic_block, decim_block, 
         self._modcod = value
         repack = 1
         
-        modcod_spect = self.json_data[self.modcod]["SPECT"]           
+        modcod_spect = self.json_data[self.modcod]["SPECT"]     
         throughput = modcod_spect*self.bandwidth
         if self.json_data[self.modcod]["MOD"] == "g4FSK":
             repack = 2
             throughput = 0.5*throughput # symbol rate conversion
-
-        self._interp = int(np.ceil(self.samp_rate/throughput)) 
-
+ 
+        # Calculate the decimation factor for the bitrate of the rational resampler
+        self.decimation = self.samp_rate/(throughput*self.sps)
+        
         # Define the interpolation rate globally using msg output
-        interp = pmt.from_long(self._interp)
-        interp_msg = pmt.cons(pmt.string_to_symbol("repack_size"), interp)
-        self.message_port_pub(pmt.intern(self.message_out3), interp_msg)
+        decimation = pmt.to_pmt(self.decimation)
+        decim_msg = pmt.cons(pmt.string_to_symbol("decimation"), decimation)
+        self.message_port_pub(pmt.intern(self.message_out3), decim_msg)
 
-        # Define the repack size globally using msg output
+        # Define the repack size globally using msg output       
         if self.repack != repack:
             self.repack = repack
             repack = pmt.from_long(repack)
@@ -124,6 +125,7 @@ class blk(gr.interp_block):  # other base classes are basic_block, decim_block, 
         if self.json_data == None:
             with open(self.filename) as json_file:
                 self.json_data = json.load(json_file)
+                
         # determine the appropriate modcod
         modcod_idx = self.json_data[self.modcod]["MOD"]
         match modcod_idx:
@@ -135,12 +137,12 @@ class blk(gr.interp_block):  # other base classes are basic_block, decim_block, 
                 modcod_idx = 2
             case _:
                 raise ValueError("Invalid modcod")
-
-        # Apply interpolation rate according to desired bitrate, if the modcod is g4FSK
-        # the interpolation is doubled to account for repacking of bits       
-        for i in range(len(input_items[0])):
-            for j in range(self._interp):
-                output_items[modcod_idx][i*self._interp + j] = input_items[0][i]
+        # Transmit data to the desired modulation scheme, remaining sources received a
+        # bitstream of 0's     
+        output_items[modcod_idx][:] = input_items[0]   
+        # for i in range(len(input_items[0])):
+        #     for j in range(self._interp):
+        #         output_items[modcod_idx][i*self._interp + j] = input_items[0][i]
             
 
         return len(output_items[0])

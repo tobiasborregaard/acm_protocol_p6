@@ -18,11 +18,9 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
        
 
         # read MODCOD from json file
-        # file_name = 'MODCOD.json'
-        file_name = r"C:\Users\chri0\Documents\GitHub\SDR_Ground_Station\hardwareImplementation\phy\physical_layer_transmitter\MODCOD.json"
-        self.json_data:dict
-        with open(file_name, 'r') as f:
-            self.json_data = json.load(f)
+        self.filename = "MODCOD.json"
+        self.json_data = None
+        
         
         # message port setup
         self.message_in = 'msg_in'
@@ -76,7 +74,10 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
             self.message_port_pub(pmt.intern(self.message_out), pmt.to_pmt(str(e)))
    
     def work(self, input_items, output_items):
-        
+        if self.json_data == None:
+            with open(self.filename) as json_file:
+                self.json_data = json.load(json_file)
+            
         # determine the appropriate modcod
         modcod_idx = self.json_data[self.modcod]["MOD"]
         match modcod_idx:
