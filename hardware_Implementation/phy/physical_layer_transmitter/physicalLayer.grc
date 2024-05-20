@@ -1,0 +1,1629 @@
+options:
+  parameters:
+    author: Ckjaer
+    catch_exceptions: 'True'
+    category: '[GRC Hier Blocks]'
+    cmake_opt: ''
+    comment: ''
+    copyright: ''
+    description: ''
+    gen_cmake: 'On'
+    gen_linking: dynamic
+    generate_options: qt_gui
+    hier_block_src_path: '.:'
+    id: physical_layer_transmitter
+    max_nouts: '0'
+    output_language: python
+    placement: (0,0)
+    qt_qss_theme: ''
+    realtime_scheduling: ''
+    run: 'True'
+    run_command: '{python} -u {filename}'
+    run_options: prompt
+    sizing_mode: fixed
+    thread_safe_setters: ''
+    title: acm_phy_layer
+    window_size: (1000,1000)
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [24, 12.0]
+    rotation: 0
+    state: enabled
+
+blocks:
+- name: bandwidth
+  id: variable
+  parameters:
+    comment: ''
+    value: '25000'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [408, 20.0]
+    rotation: 0
+    state: enabled
+- name: bp_filter
+  id: variable_band_pass_filter_taps
+  parameters:
+    beta: '6.76'
+    comment: ''
+    gain: '1.0'
+    high_cutoff_freq: th.modcod(bandwidth, "7")/2 + 200
+    low_cutoff_freq: -th.modcod(bandwidth, "7")/2 - 200
+    samp_rate: samp_rate
+    type: complex_band_pass
+    value: ''
+    width: '200'
+    win: window.WIN_RECTANGULAR
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [984, 16.0]
+    rotation: 0
+    state: enabled
+- name: bp_filter_0
+  id: variable_band_pass_filter_taps
+  parameters:
+    beta: '6.76'
+    comment: ''
+    gain: '1.0'
+    high_cutoff_freq: bandwidth/2 + 200
+    low_cutoff_freq: -bandwidth/2 - 200
+    samp_rate: samp_rate
+    type: complex_band_pass
+    value: ''
+    width: '200'
+    win: window.WIN_RECTANGULAR
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1496, 8.0]
+    rotation: 0
+    state: enabled
+- name: interpolation
+  id: variable
+  parameters:
+    comment: ''
+    value: int(np.ceil(samp_rate/(th.modcod(bandwidth, "1"))))
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1248, 100.0]
+    rotation: 0
+    state: enabled
+- name: repack_size
+  id: variable
+  parameters:
+    comment: ''
+    value: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1256, 12.0]
+    rotation: 0
+    state: enabled
+- name: samp_rate
+  id: variable
+  parameters:
+    comment: ''
+    value: 200e3
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [272, 20.0]
+    rotation: 0
+    state: enabled
+- name: analog_frequency_modulator_fc_0
+  id: analog_frequency_modulator_fc
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    sensitivity: (np.pi / 2) / 4
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [2344, 540.0]
+    rotation: 0
+    state: enabled
+- name: analog_frequency_modulator_fc_0_0
+  id: analog_frequency_modulator_fc
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    sensitivity: (np.pi / 2) / interp
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1984, 428.0]
+    rotation: 0
+    state: enabled
+- name: analog_quadrature_demod_cf_0
+  id: analog_quadrature_demod_cf
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    gain: '1'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [672, 1300.0]
+    rotation: 0
+    state: enabled
+- name: analog_quadrature_demod_cf_1
+  id: analog_quadrature_demod_cf
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    gain: '1'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [672, 1140.0]
+    rotation: 0
+    state: enabled
+- name: analog_quadrature_demod_cf_2
+  id: analog_quadrature_demod_cf
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    gain: samp_rate*2/(2*np.pi*bandwidth)
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [656, 908.0]
+    rotation: 0
+    state: enabled
+- name: analog_random_source_x_0
+  id: analog_random_source_x
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    max: '256'
+    maxoutbuf: '0'
+    min: '0'
+    minoutbuf: '0'
+    num_samps: '1000'
+    repeat: 'True'
+    type: byte
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [64, 636.0]
+    rotation: 0
+    state: enabled
+- name: blocks_float_to_uchar_0
+  id: blocks_float_to_uchar
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1768, 1016.0]
+    rotation: 0
+    state: enabled
+- name: blocks_msgpair_to_var_0
+  id: blocks_msgpair_to_var
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    target: repack_size
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1100.0, 600]
+    rotation: 270
+    state: enabled
+- name: blocks_msgpair_to_var_1
+  id: blocks_msgpair_to_var
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    target: interpolation
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1172.0, 600]
+    rotation: 270
+    state: enabled
+- name: blocks_null_sink_0
+  id: blocks_null_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    bus_structure_sink: '[[0,],]'
+    comment: ''
+    num_inputs: '1'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [3888, 528.0]
+    rotation: 0
+    state: disabled
+- name: blocks_null_sink_1
+  id: blocks_null_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    bus_structure_sink: '[[0,],]'
+    comment: ''
+    num_inputs: '1'
+    type: byte
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [2584, 1088.0]
+    rotation: 0
+    state: enabled
+- name: blocks_packed_to_unpacked_xx_0
+  id: blocks_packed_to_unpacked_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    bits_per_chunk: repack_size
+    comment: ''
+    endianness: gr.GR_MSB_FIRST
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_ports: '1'
+    type: byte
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [424, 508.0]
+    rotation: 0
+    state: enabled
+- name: blocks_repack_bits_bb_0
+  id: blocks_repack_bits_bb
+  parameters:
+    affinity: ''
+    alias: ''
+    align_output: 'False'
+    comment: ''
+    endianness: gr.GR_MSB_FIRST
+    k: repack_size
+    l: '8'
+    len_tag_key: '""'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [2408, 1212.0]
+    rotation: 0
+    state: disabled
+- name: blocks_stream_to_vector_0
+  id: blocks_stream_to_vector
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_items: 2**15
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [120, 1552.0]
+    rotation: 0
+    state: enabled
+- name: blocks_throttle2_0
+  id: blocks_throttle2
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    ignoretag: 'True'
+    limit: auto
+    maximum: '0.1'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    samples_per_second: samp_rate
+    type: byte
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [704, 500.0]
+    rotation: 0
+    state: enabled
+- name: blocks_vco_f_1
+  id: blocks_vco_f
+  parameters:
+    affinity: ''
+    alias: ''
+    amplitude: '0.5'
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    samp_rate: samp_rate
+    sensitivity: 2*np.pi*bandwidth/3
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [2544, 296.0]
+    rotation: 0
+    state: enabled
+- name: digital_binary_slicer_fb_0
+  id: digital_binary_slicer_fb
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1536, 1120.0]
+    rotation: 0
+    state: enabled
+- name: digital_binary_slicer_fb_0_0
+  id: digital_binary_slicer_fb
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1528, 1072.0]
+    rotation: 0
+    state: enabled
+- name: digital_chunks_to_symbols_xx_0
+  id: digital_chunks_to_symbols_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    dimension: '1'
+    in_type: byte
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_ports: '1'
+    out_type: float
+    symbol_table: '[-1, 1]'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1648, 532.0]
+    rotation: 0
+    state: enabled
+- name: digital_chunks_to_symbols_xx_0_0
+  id: digital_chunks_to_symbols_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    dimension: '1'
+    in_type: byte
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_ports: '1'
+    out_type: float
+    symbol_table: '[-1, 1]'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1648, 420.0]
+    rotation: 0
+    state: enabled
+- name: digital_chunks_to_symbols_xx_1
+  id: digital_chunks_to_symbols_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    dimension: '1'
+    in_type: byte
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_ports: '1'
+    out_type: float
+    symbol_table: '[-1.5, -0.5, 0.5, 1.5]'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1640, 308.0]
+    rotation: 0
+    state: enabled
+- name: digital_symbol_sync_xx_1_0
+  id: digital_symbol_sync_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    constellation: digital.constellation_bpsk().base()
+    damping: '1.0'
+    loop_bw: '0.045'
+    max_dev: '1.5'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    nfilters: '64'
+    osps: '1'
+    pfb_mf_taps: '[]'
+    resamp_type: digital.IR_PFB_NO_MF
+    sps: interpolation
+    ted_gain: '1.0'
+    ted_type: digital.TED_SIGNAL_TIMES_SLOPE_ML
+    type: ff
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [928, 1288.0]
+    rotation: 0
+    state: enabled
+- name: digital_symbol_sync_xx_1_0_0
+  id: digital_symbol_sync_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    constellation: digital.constellation_bpsk().base()
+    damping: '1.0'
+    loop_bw: '0.045'
+    max_dev: '1.5'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    nfilters: '64'
+    osps: '1'
+    pfb_mf_taps: '[]'
+    resamp_type: digital.IR_PFB_NO_MF
+    sps: interpolation
+    ted_gain: '1.0'
+    ted_type: digital.TED_SIGNAL_TIMES_SLOPE_ML
+    type: ff
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [928, 1056.0]
+    rotation: 0
+    state: enabled
+- name: digital_symbol_sync_xx_1_0_0_0
+  id: digital_symbol_sync_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    constellation: digital.constellation_bpsk().base()
+    damping: '1.0'
+    loop_bw: '0.045'
+    max_dev: '1.5'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    nfilters: '64'
+    osps: '1'
+    pfb_mf_taps: '[]'
+    resamp_type: digital.IR_PFB_NO_MF
+    sps: interpolation
+    ted_gain: '1.0'
+    ted_type: digital.TED_SIGNAL_TIMES_SLOPE_ML
+    type: ff
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [920, 824.0]
+    rotation: 0
+    state: enabled
+- name: epy_block_0
+  id: epy_block
+  parameters:
+    _source_code: "import numpy as np\nfrom gnuradio import gr\nimport pmt\nimport\
+      \ json\n\nclass blk(gr.interp_block):  # other base classes are basic_block,\
+      \ decim_block, interp_block\n    \n    def __init__(self, addr = \"modcod\"\
+      , interpolation = 10, samp_rate=32000, bandwidth = 25000):  # only default arguments\
+      \ here\n        gr.interp_block.__init__(\n            self,\n            name='DEMUX',\
+      \   # will show up in GRC\n            in_sig = [np.byte], \n            out_sig\
+      \ = [np.byte, np.byte, np.byte],\n            interp = interpolation\n     \
+      \   )\n        self.addr = addr\n        self._modcod = \"1\" # default modcod\n\
+      \        self.samp_rate = samp_rate\n        self.bandwidth = bandwidth\n  \
+      \      self.repack = 1\n    \n        # read MODCOD from json file      \n \
+      \       self.filename = \"MODCOD.json\"\n        self.json_data = None\n   \
+      \     \n        \n        # message port setup\n        self.message_in = 'msg_in'\n\
+      \        self.message_port_register_in(pmt.intern(self.message_in))\n      \
+      \  self.set_msg_handler(pmt.intern(self.message_in), self.mailbox)\n       \
+      \ self.message_out = 'msg_out'\n        self.message_port_register_out(pmt.intern(self.message_out))\n\
+      \n        self.message_out2 = 'repack_out'\n        self.message_port_register_out(pmt.intern(self.message_out2))\n\
+      \n        self.message_out3 = 'interp_out'\n        self.message_port_register_out(pmt.intern(self.message_out3))\n\
+      \n\n        \n    def extract_pmt(self, msg):\n        try:\n            data\
+      \ = pmt.to_python(msg)\n        except:\n            self.message_port_pub(pmt.intern(self.message_out),\
+      \ pmt.to_pmt(\"Err: Invalid format\"))\n        return data\n\n    def unpack(self,\
+      \ msg):\n        if msg[0] == self.addr:\n            return msg[1:]\n     \
+      \   else: return False\n\n    @property\n    def modcod(self):\n        return\
+      \ self._modcod\n    \n    @modcod.setter\n    def modcod(self, value: str):\n\
+      \        self._modcod = value\n        repack = 1\n        \n        modcod_spect\
+      \ = self.json_data[self.modcod][\"SPECT\"]           \n        throughput =\
+      \ modcod_spect*self.bandwidth\n        if self.json_data[self.modcod][\"MOD\"\
+      ] == \"g4FSK\":\n            repack = 2\n            throughput = 0.5*throughput\
+      \ # symbol rate conversion\n\n        self._interp = int(np.ceil(self.samp_rate/throughput))\
+      \ \n\n        # Define the interpolation rate globally using msg output\n  \
+      \      interp = pmt.from_long(self._interp)\n        interp_msg = pmt.cons(pmt.string_to_symbol(\"\
+      repack_size\"), interp)\n        self.message_port_pub(pmt.intern(self.message_out3),\
+      \ interp_msg)\n\n        # Define the repack size globally using msg output\n\
+      \        if self.repack != repack:\n            self.repack = repack\n     \
+      \       repack = pmt.from_long(repack)\n            msg = pmt.cons(pmt.string_to_symbol(\"\
+      repack_size\"), repack)\n            self.message_port_pub(pmt.intern(self.message_out2),\
+      \ msg)\n\n    def mailbox(self, msg):\n        r = {}\n        try:\n      \
+      \      data = self.extract_pmt(msg)\n\n            #If address check is active:\n\
+      \            data = self.unpack(data)\n            if data == False: return\
+      \ \n\n            varname = list(data[1].keys())[0]\n            if varname\
+      \ == \"modcod\":\n                pass\n            elif varname not in self.__dict__:\n\
+      \                raise Exception(\"Err: Unknown variable\")\n            \n\
+      \            if data[0].lower() == \"get\":\n                if varname == \"\
+      modcod\":\n                    r[varname] = self.modcod\n                else:\n\
+      \                    r[varname] = self.__dict__[varname]\n            elif data[0].lower()\
+      \ == \"set\":\n                if varname == \"modcod\":\n                 \
+      \   self.modcod = data[1][varname]\n                    r[varname] = \"ok\"\n\
+      \                elif type(data[1][varname]) != type(self.__dict__[varname]):\n\
+      \                    raise Exception(\"Err: Variable in wrong format\")\n  \
+      \              else:\n                    self.__dict__[varname] = data[1][varname]\n\
+      \                    r[varname] = \"ok\"\n            \n            #If address\
+      \ return with SRC\n            r = [self.addr, r]\n\n            self.message_port_pub(pmt.intern(self.message_out),\
+      \ pmt.to_pmt(r))\n            return\n\n        except Exception as e:\n   \
+      \         self.message_port_pub(pmt.intern(self.message_out), pmt.to_pmt(str(e)))\n\
+      \   \n    def work(self, input_items, output_items):\n        if self.json_data\
+      \ == None:\n            with open(self.filename) as json_file:\n           \
+      \     self.json_data = json.load(json_file)\n                \n        # determine\
+      \ the appropriate modcod\n        modcod_idx = self.json_data[self.modcod][\"\
+      MOD\"]\n        match modcod_idx:\n            case \"g4FSK\":\n           \
+      \     modcod_idx = 0\n            case \"MSK\":\n                modcod_idx\
+      \ = 1\n            case \"gMSK\":\n                modcod_idx = 2\n        \
+      \    case _:\n                raise ValueError(\"Invalid modcod\")\n\n     \
+      \   # Apply interpolation rate according to desired bitrate, if the modcod is\
+      \ g4FSK\n        # the interpolation is doubled to account for repacking of\
+      \ bits       \n        for i in range(len(input_items[0])):\n            for\
+      \ j in range(self._interp):\n                output_items[modcod_idx][i*self._interp\
+      \ + j] = input_items[0][i]\n            \n\n        return len(output_items[0])"
+    addr: '''mux'''
+    affinity: ''
+    alias: ''
+    bandwidth: bandwidth
+    comment: ''
+    interpolation: int(np.ceil(samp_rate/(th.modcod(bandwidth, "1"))))
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    samp_rate: samp_rate
+  states:
+    _io_cache: ('DEMUX', 'blk', [('addr', "'modcod'"), ('interpolation', '10'), ('samp_rate',
+      '32000'), ('bandwidth', '25000')], [('0', 'byte', 1), ('msg_in', 'message',
+      1)], [('0', 'byte', 1), ('1', 'byte', 1), ('2', 'byte', 1), ('interp_out', 'message',
+      1), ('repack_out', 'message', 1), ('msg_out', 'message', 1)], '', ['addr', 'bandwidth',
+      'samp_rate'])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1000, 396.0]
+    rotation: 0
+    state: enabled
+- name: epy_block_0_0
+  id: epy_block
+  parameters:
+    _source_code: "import numpy as np\nfrom gnuradio import gr\nimport pmt\nimport\
+      \ json\n\n\nclass blk(gr.sync_block):  # other base classes are basic_block,\
+      \ decim_block, interp_block\n\n    def __init__(self, addr = \"modcod\"):  #\
+      \ only default arguments here\n        gr.sync_block.__init__(\n           \
+      \ self,\n            name='DEMUX',   # will show up in GRC\n            in_sig\
+      \ = [np.complex64], \n            out_sig = [np.complex64, np.complex64, np.complex64]\n\
+      \        )\n        self.addr = addr\n        self.modcod = \"1\" # default\
+      \ modcod\n       \n\n        # read MODCOD from json file\n        self.filename\
+      \ = \"MODCOD.json\"\n        self.json_data = None\n        \n        \n   \
+      \     # message port setup\n        self.message_in = 'msg_in'\n        self.message_port_register_in(pmt.intern(self.message_in))\n\
+      \        self.set_msg_handler(pmt.intern(self.message_in), self.mailbox)\n \
+      \       self.message_out = 'msg_out'\n        self.message_port_register_out(pmt.intern(self.message_out))\n\
+      \        \n    def extract_pmt(self, msg):\n        try:\n            data =\
+      \ pmt.to_python(msg)\n        except:\n            self.message_port_pub(pmt.intern(self.message_out),\
+      \ pmt.to_pmt(\"Err: Invalid format\"))\n        return data\n\n    def unpack(self,\
+      \ msg):\n        if msg[0] == self.addr:\n            return msg[1:]\n     \
+      \   else: return False\n\n\n    def mailbox(self, msg):\n        r = {}\n  \
+      \      try:\n            data = self.extract_pmt(msg)\n\n            #If address\
+      \ check is active:\n            data = self.unpack(data)\n            if data\
+      \ == False: return \n\n            varname = list(data[1].keys())[0]\n     \
+      \       if varname not in self.__dict__:\n                raise Exception(\"\
+      Err: Unknown variable\")\n            \n            if data[0].lower() == \"\
+      get\":\n                r[varname] = self.__dict__[varname]\n            elif\
+      \ data[0].lower() == \"set\":\n                if type(data[1][varname]) !=\
+      \ type(self.__dict__[varname]):\n                    raise Exception(\"Err:\
+      \ Variable in wrong format\")\n                else:\n                    self.__dict__[varname]\
+      \ = data[1][varname]\n                    r[varname] = \"ok\"\n            \n\
+      \            #If address return with SRC\n            r = [self.addr, r]\n\n\
+      \            self.message_port_pub(pmt.intern(self.message_out), pmt.to_pmt(r))\n\
+      \            return\n\n        except Exception as e:\n            self.message_port_pub(pmt.intern(self.message_out),\
+      \ pmt.to_pmt(str(e)))\n   \n    def work(self, input_items, output_items):\n\
+      \        if self.json_data == None:\n            with open(self.filename) as\
+      \ json_file:\n                self.json_data = json.load(json_file)\n      \
+      \      \n        # determine the appropriate modcod\n        modcod_idx = self.json_data[self.modcod][\"\
+      MOD\"]\n        match modcod_idx:\n            case \"g4FSK\":\n           \
+      \     modcod_idx = 0\n            case \"MSK\":\n                modcod_idx\
+      \ = 1\n            case \"gMSK\":\n                modcod_idx = 2\n        \
+      \    case _:\n                raise ValueError(\"Invalid modcod\")\n       \
+      \ output_items[modcod_idx][:] = input_items[0][:] \n\n        return len(output_items[0])"
+    addr: '''demux'''
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    _io_cache: ('DEMUX', 'blk', [('addr', "'modcod'")], [('0', 'complex', 1), ('msg_in',
+      'message', 1)], [('0', 'complex', 1), ('1', 'complex', 1), ('2', 'complex',
+      1), ('msg_out', 'message', 1)], '', ['addr'])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [376, 1116.0]
+    rotation: 0
+    state: enabled
+- name: epy_block_0_0_0
+  id: epy_block
+  parameters:
+    _source_code: "import numpy as np\nfrom gnuradio import gr\nimport pmt\n\nclass\
+      \ blk(gr.sync_block):  # other base classes are basic_block, decim_block, interp_block\n\
+      \n    def __init__(self, snr=10, addr=\"awgn\"):  # only default arguments here\n\
+      \        gr.sync_block.__init__(\n            self,\n            name='AWGN\
+      \ Channel',   # will show up in GRC\n            in_sig=[np.complex64],\n  \
+      \          out_sig=[np.complex64]\n        )\n        self.addr = addr\n   \
+      \     self.snr = snr\n        window_size = 100\n        self.kernel = np.ones(window_size)/window_size\n\
+      \n        # message port setup\n        self.message_in = 'msg_in'\n       \
+      \ self.message_port_register_in(pmt.intern(self.message_in))\n        self.set_msg_handler(pmt.intern(self.message_in),\
+      \ self.mailbox)\n        self.message_out = 'msg_out'\n        self.message_port_register_out(pmt.intern(self.message_out))\n\
+      \n\n    def extract_pmt(self, msg):\n        try:\n            data = pmt.to_python(msg)\n\
+      \        except:\n            self.message_port_pub(pmt.intern(self.message_out),\
+      \ pmt.to_pmt(\"Err: Invalid format\"))\n        return data\n\n    def unpack(self,\
+      \ msg):\n        if msg[0] == self.addr:\n            return msg[1:]\n     \
+      \   else: return False\n\n\n    def mailbox(self, msg):\n        r = {}\n  \
+      \      try:\n            data = self.extract_pmt(msg)\n\n            #If address\
+      \ check is active:\n            data = self.unpack(data)\n            if data\
+      \ == False: return \n\n            varname = list(data[1].keys())[0]\n     \
+      \       if varname not in self.__dict__:\n                raise Exception(\"\
+      Err: Unknown variable\")\n            \n            if data[0].lower() == \"\
+      get\":\n                r[varname] = self.__dict__[varname]\n            elif\
+      \ data[0].lower() == \"set\":\n                if type(data[1][varname]) !=\
+      \ type(self.__dict__[varname]):\n                    raise Exception(\"Err:\
+      \ Variable in wrong format\")\n                else:\n                    self.__dict__[varname]\
+      \ = data[1][varname]\n                    r[varname] = \"ok\"\n            \n\
+      \            #If address return with SRC\n            r = [self.addr, r]\n\n\
+      \            self.message_port_pub(pmt.intern(self.message_out), pmt.to_pmt(r))\n\
+      \            return\n\n        except Exception as e:\n            self.message_port_pub(pmt.intern(self.message_out),\
+      \ pmt.to_pmt(str(e)))\n\n    def work(self, input_items, output_items):\n  \
+      \      # Calculate the moving average of the signal power to determine the noise\
+      \ power\n        data = input_items[0][:]\n        signal_power = data.real**2\
+      \ + data.imag**2 # convert to power\n        signal_power_avg = np.convolve(signal_power,\
+      \ self.kernel , mode='same')[-1]\n        noise_power = signal_power_avg / 10**(self.snr/10)\n\
+      \n        # Debug messages\n        # if self.nitems_written(0) % 100 == 0:\n\
+      \        #     print(f\"Signal Power Average: {np.sqrt(signal_power_avg)}\"\
+      )\n        #     print(f\"Noise Power: {np.sqrt(noise_power)}\")\n\n       \
+      \ noise_vector = np.sqrt(noise_power) * (np.random.randn(len(input_items[0]))\
+      \ + 1j * np.random.randn(len(input_items[0])))\n        output_items[0][:] =\
+      \ input_items[:] + noise_vector\n        return len(output_items[0])\n"
+    addr: '"awgn"'
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    snr: '20'
+  states:
+    _io_cache: ('AWGN Channel', 'blk', [('snr', '10'), ('addr', "'awgn'")], [('0',
+      'complex', 1), ('msg_in', 'message', 1)], [('0', 'complex', 1), ('msg_out',
+      'message', 1)], '', ['addr', 'snr'])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [3592, 436.0]
+    rotation: 0
+    state: enabled
+- name: epy_block_0_1
+  id: epy_block
+  parameters:
+    _source_code: "\"\"\"\nEmbedded Python Blocks:\n\nEach time this file is saved,\
+      \ GRC will instantiate the first class it finds\nto get ports and parameters\
+      \ of your block. The arguments to __init__  will\nbe the parameters. All of\
+      \ them are required to have default values!\n\"\"\"\n\nimport numpy as np\n\
+      from gnuradio import gr\n\n\nclass blk(gr.sync_block):  # other base classes\
+      \ are basic_block, decim_block, interp_block\n    \"\"\"Embedded Python Block\
+      \ example - a simple multiply const\"\"\"\n\n    def __init__(self):  # only\
+      \ default arguments here\n        \"\"\"arguments to this function show up as\
+      \ parameters in GRC\"\"\"\n        gr.sync_block.__init__(\n            self,\n\
+      \            name='Scaling',   # will show up in GRC\n            in_sig=[np.float32],\n\
+      \            out_sig=[np.float32]\n        )\n        # if an attribute with\
+      \ the same name as a parameter is found,\n        # a callback is registered\
+      \ (properties work, too).\n\n    def work(self, input_items, output_items):\n\
+      \        \"\"\"example: multiply with constant\"\"\"\n        output_items[0][:]\
+      \ = (input_items[0] + 8)/4\n        return len(output_items[0])\n"
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    _io_cache: ('Scaling', 'blk', [], [('0', 'float', 1)], [('0', 'float', 1)], 'Embedded
+      Python Block example - a simple multiply const', [])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [2368, 328.0]
+    rotation: 0
+    state: true
+- name: epy_block_1_0_0
+  id: epy_block
+  parameters:
+    _source_code: "import numpy as np\nfrom gnuradio import gr\nimport pmt\nimport\
+      \ json\n\n\nclass blk(gr.sync_block):  # other base classes are basic_block,\
+      \ decim_block, interp_block\n\n    def __init__(self, addr=\"modcod\"):  # only\
+      \ default arguments here\n        gr.sync_block.__init__(\n            self,\n\
+      \            name='MUX',   # will show up in GRC\n            in_sig = [np.complex64,\
+      \ np.complex64, np.complex64],\n            out_sig = [np.complex64]\n     \
+      \   )\n        self.addr = addr\n        self.modcod = \"8\" # default modcod\n\
+      \        \n        # read MODCOD from json file\n        # file_name = 'MODCOD.json'\n\
+      \        self.filename = \"MODCOD.json\"\n        self.json_data = None\n\n\
+      \        # message port setup\n        self.message_in = 'msg_in'\n        self.message_port_register_in(pmt.intern(self.message_in))\n\
+      \        self.set_msg_handler(pmt.intern(self.message_in), self.mailbox)\n \
+      \       self.message_out = 'msg_out'\n        self.message_port_register_out(pmt.intern(self.message_out))\n\
+      \        \n    def extract_pmt(self, msg):\n        try:\n            data =\
+      \ pmt.to_python(msg)\n        except:\n            self.message_port_pub(pmt.intern(self.message_out),\
+      \ pmt.to_pmt(\"Err: Invalid format\"))\n        return data\n\n    def unpack(self,\
+      \ msg):\n        if msg[0] == self.addr:\n            return msg[1:]\n     \
+      \   else: return False\n\n\n    def mailbox(self, msg):\n        r = {}\n  \
+      \      try:\n            data = self.extract_pmt(msg)\n\n            #If address\
+      \ check is active:\n            data = self.unpack(data)\n            if data\
+      \ == False: return \n\n            varname = list(data[1].keys())[0]\n     \
+      \       if varname not in self.__dict__:\n                raise Exception(\"\
+      Err: Unknown variable\")\n            \n            if data[0].lower() == \"\
+      get\":\n                r[varname] = self.__dict__[varname]\n            elif\
+      \ data[0].lower() == \"set\":\n                if type(data[1][varname]) !=\
+      \ type(self.__dict__[varname]):\n                    raise Exception(\"Err:\
+      \ Variable in wrong format\")\n                else:\n                    self.__dict__[varname]\
+      \ = data[1][varname]\n                    r[varname] = \"ok\"\n            \n\
+      \            #If address return with SRC\n            r = [self.addr, r]\n\n\
+      \            self.message_port_pub(pmt.intern(self.message_out), pmt.to_pmt(r))\n\
+      \            return\n\n        except Exception as e:\n            self.message_port_pub(pmt.intern(self.message_out),\
+      \ pmt.to_pmt(str(e)))\n\n   \n    def work(self, input_items, output_items):\n\
+      \        if self.json_data == None:\n            with open(self.filename) as\
+      \ json_file:\n                self.json_data = json.load(json_file)\n\n    \
+      \     # determine the appropriate modcod\n        modcod_idx = self.json_data[self.modcod][\"\
+      MOD\"]\n        match modcod_idx:\n            case \"g4FSK\":\n           \
+      \     modcod_idx = 0\n            case \"MSK\":\n                modcod_idx\
+      \ = 1\n            case \"gMSK\":\n                modcod_idx = 2\n        \
+      \    case _:\n                raise ValueError(\"Invalid modcod\")\n       \
+      \ \n        output_items[0][:] = input_items[modcod_idx] \n        \n      \
+      \  return len(output_items[0])\n"
+    addr: '''mux_1'''
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    _io_cache: ('MUX', 'blk', [('addr', "'modcod'")], [('0', 'complex', 1), ('1',
+      'complex', 1), ('2', 'complex', 1), ('msg_in', 'message', 1)], [('0', 'complex',
+      1), ('msg_out', 'message', 1)], '', ['addr'])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [3264, 412.0]
+    rotation: 0
+    state: enabled
+- name: epy_block_1_0_0_0
+  id: epy_block
+  parameters:
+    _source_code: "import numpy as np\nfrom gnuradio import gr\nimport pmt\nimport\
+      \ json\n\n\nclass blk(gr.sync_block):  # other base classes are basic_block,\
+      \ decim_block, interp_block\n\n    def __init__(self, addr=\"modcod\"):  # only\
+      \ default arguments here\n        gr.sync_block.__init__(\n            self,\n\
+      \            name='MUX',   # will show up in GRC\n            in_sig = [np.byte,\
+      \ np.byte, np.byte],\n            out_sig = [np.byte]\n        )\n        self.addr\
+      \ = addr\n        self.modcod = \"1\" # default modcod\n        \n        #\
+      \ read MODCOD from json file\n        # file_name = 'MODCOD.json'\n        self.filename\
+      \ = \"MODCOD.json\"\n        self.json_data = None\n\n        # message port\
+      \ setup\n        self.message_in = 'msg_in'\n        self.message_port_register_in(pmt.intern(self.message_in))\n\
+      \        self.set_msg_handler(pmt.intern(self.message_in), self.mailbox)\n \
+      \       self.message_out = 'msg_out'\n        self.message_port_register_out(pmt.intern(self.message_out))\n\
+      \        \n    def extract_pmt(self, msg):\n        try:\n            data =\
+      \ pmt.to_python(msg)\n        except:\n            self.message_port_pub(pmt.intern(self.message_out),\
+      \ pmt.to_pmt(\"Err: Invalid format\"))\n        return data\n\n    def unpack(self,\
+      \ msg):\n        if msg[0] == self.addr:\n            return msg[1:]\n     \
+      \   else: return False\n\n\n    def mailbox(self, msg):\n        r = {}\n  \
+      \      try:\n            data = self.extract_pmt(msg)\n\n            #If address\
+      \ check is active:\n            data = self.unpack(data)\n            if data\
+      \ == False: return \n\n            varname = list(data[1].keys())[0]\n     \
+      \       if varname not in self.__dict__:\n                raise Exception(\"\
+      Err: Unknown variable\")\n            \n            if data[0].lower() == \"\
+      get\":\n                r[varname] = self.__dict__[varname]\n            elif\
+      \ data[0].lower() == \"set\":\n                if type(data[1][varname]) !=\
+      \ type(self.__dict__[varname]):\n                    raise Exception(\"Err:\
+      \ Variable in wrong format\")\n                else:\n                    self.__dict__[varname]\
+      \ = data[1][varname]\n                    r[varname] = \"ok\"\n            \n\
+      \            #If address return with SRC\n            r = [self.addr, r]\n\n\
+      \            self.message_port_pub(pmt.intern(self.message_out), pmt.to_pmt(r))\n\
+      \            return\n\n        except Exception as e:\n            self.message_port_pub(pmt.intern(self.message_out),\
+      \ pmt.to_pmt(str(e)))\n\n   \n    def work(self, input_items, output_items):\n\
+      \        if self.json_data == None:\n            with open(self.filename) as\
+      \ json_file:\n                self.json_data = json.load(json_file)\n\n    \
+      \     # determine the appropriate modcod\n        modcod_idx = self.json_data[self.modcod][\"\
+      MOD\"]\n        match modcod_idx:\n            case \"g4FSK\":\n           \
+      \     modcod_idx = 0\n            case \"MSK\":\n                modcod_idx\
+      \ = 1\n            case \"gMSK\":\n                modcod_idx = 2\n        \
+      \    case _:\n                raise ValueError(\"Invalid modcod\")\n       \
+      \ \n        output_items[0][:] = input_items[modcod_idx][:] \n        \n   \
+      \     return len(output_items[0])\n"
+    addr: '''demux_1'''
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    _io_cache: ('MUX', 'blk', [('addr', "'modcod'")], [('0', 'byte', 1), ('1', 'byte',
+      1), ('2', 'byte', 1), ('msg_in', 'message', 1)], [('0', 'byte', 1), ('msg_out',
+      'message', 1)], '', ['addr'])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [2104, 1084.0]
+    rotation: 0
+    state: enabled
+- name: epy_block_2_0
+  id: epy_block
+  parameters:
+    _source_code: "import numpy as np\nfrom gnuradio import gr\nimport pmt\n\nclass\
+      \ blk(gr.sync_block):  # other base classes are basic_block, decim_block, interp_block\n\
+      \n    def __init__(self, fft_size=2**15, bandwidth=500, samplerate = 32e3, addr\
+      \ = \"snr_meas\"):  # only default arguments here\n        gr.sync_block.__init__(\n\
+      \            self,\n            name='SNR Measurement',   \n            in_sig\
+      \ = [(np.complex64, fft_size)],\n            out_sig = None \n        )\n  \
+      \      self.addr = addr\n        self.fft_size = fft_size\n        self.samplerate\
+      \ = samplerate\n        self.bandwidth = bandwidth\n        self.snrAvg = 0\n\
+      \        \n        self.snr = np.zeros(int((samplerate/fft_size)))\n       \
+      \ self.window = int(0.5*(samplerate/fft_size)) # 0.5 s window\n        self.kernel\
+      \ = np.ones(self.window) / self.window\n        # self.portName = 'print_out'\n\
+      \n        # message port setup\n        self.message_in = 'msg_in'\n       \
+      \ self.message_port_register_in(pmt.intern(self.message_in))\n        self.set_msg_handler(pmt.intern(self.message_in),\
+      \ self.mailbox)\n        self.message_out = 'msg_out'\n        self.message_port_register_out(pmt.intern(self.message_out))\n\
+      \n    def extract_pmt(self, msg):\n        try:\n            data = pmt.to_python(msg)\n\
+      \        except:\n            self.message_port_pub(pmt.intern(self.message_out),\
+      \ pmt.to_pmt(\"Err: Invalid format\"))\n        return data\n\n    def unpack(self,\
+      \ msg):\n        if msg[0] == self.addr:\n            return msg[1:]\n     \
+      \   else: return False\n\n\n    def mailbox(self, msg):\n        r = {}\n  \
+      \      try:\n            data = self.extract_pmt(msg)\n\n            #If address\
+      \ check is active:\n            data = self.unpack(data)\n            if data\
+      \ == False: return \n\n            varname = list(data[1].keys())[0]\n     \
+      \       if varname not in self.__dict__:\n                raise Exception(\"\
+      Err: Unknown variable\")\n            \n            if data[0].lower() == \"\
+      get\":\n                r[varname] = self.__dict__[varname]\n            elif\
+      \ data[0].lower() == \"set\":\n                if type(data[1][varname]) !=\
+      \ type(self.__dict__[varname]):\n                    raise Exception(\"Err:\
+      \ Variable in wrong format\")\n                else:\n                    self.__dict__[varname]\
+      \ = data[1][varname]\n                    r[varname] = \"ok\"\n            \n\
+      \            #If address return with SRC\n            r = [self.addr, r]\n\n\
+      \            self.message_port_pub(pmt.intern(self.message_out), pmt.to_pmt(r))\n\
+      \            return\n\n        except Exception as e:\n            self.message_port_pub(pmt.intern(self.message_out),\
+      \ pmt.to_pmt(str(e)))\n\n    def work(self, input_items, output_items):    \
+      \    \n        \n        data = input_items[0][0][:]\n\n        fft = np.fft.fft(data)\
+      \ * 1/self.fft_size\n        fft_shifted = np.fft.fftshift(fft) \n        magsquared\
+      \ = fft_shifted.real**2 + fft_shifted.imag**2\n        # print(\"fft\")\n  \
+      \      res = self.samplerate/self.fft_size\n        span = int(self.bandwidth/res)\n\
+      \        center = int(self.fft_size/2)\n        start =int( center - span/2)\n\
+      \        stop = int(center + span/2)\n        sig = magsquared[start:stop]\n\
+      \       \n        noise = np.append(magsquared[0:start-int(span/2)], magsquared[stop+int(span/2):])\n\
+      \        noise = span*np.mean(noise)\n        # noise = magsquared[:span]\n\n\
+      \        # print(f\"Range %i - %i, Noise %.3f, len: %i\" % (start, stop, 10*np.log10(np.mean(sig)),\
+      \ len(sig)))\n    \n        noise_power = 10*np.log10(noise)\n        receive_power\
+      \ = 10*np.log10(np.sum(sig))\n        snr = receive_power - noise_power\n\n\
+      \        # Update the SNR buffer\n        self.snr = self.snr[1:]\n        self.snr\
+      \ = np.append(self.snr, snr)\n\n        # Calculate the moving average of the\
+      \ SNR with convolution\n        self.snrAvg = np.convolve(self.snr, self.kernel,\
+      \ mode='valid')[-1]\n        print(self.snrAvg)\n        # self.message_port_pub(pmt.intern(self.portName),\
+      \ pmt.to_pmt(self.snrAvg))\n        #output_items[0][:] = 10*np.log10(magsquared)\
+      \ # To view the fft in vector sink\n\n        return 1\n"
+    addr: '"snr_meas"'
+    affinity: ''
+    alias: ''
+    bandwidth: 25e3
+    comment: Custom block
+    fft_size: 2**15
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    samplerate: samp_rate
+  states:
+    _io_cache: ('SNR Measurement', 'blk', [('fft_size', '32768'), ('bandwidth', '500'),
+      ('samplerate', '32000.0'), ('addr', "'snr_meas'")], [('0', 'complex', 32768),
+      ('msg_in', 'message', 1)], [('msg_out', 'message', 1)], '', ['addr', 'bandwidth',
+      'fft_size', 'samplerate'])
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [424, 1516.0]
+    rotation: 0
+    state: enabled
+- name: freq_xlating_fir_filter_xxx_0
+  id: freq_xlating_fir_filter_xxx
+  parameters:
+    affinity: ''
+    alias: ''
+    center_freq: bandwidth*2/3 + 200
+    comment: ''
+    decim: '1'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    samp_rate: samp_rate
+    taps: bp_filter_0
+    type: fcc
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [2848, 148.0]
+    rotation: 0
+    state: enabled
+- name: freq_xlating_fir_filter_xxx_0_0_0
+  id: freq_xlating_fir_filter_xxx
+  parameters:
+    affinity: ''
+    alias: ''
+    center_freq: th.modcod(bandwidth, "7")/2 + th.modcod(bandwidth, "7")/6
+    comment: ''
+    decim: '1'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    samp_rate: samp_rate
+    taps: bp_filter
+    type: fcc
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [2840, 300.0]
+    rotation: 0
+    state: disabled
+- name: g4fsk_decoding_0
+  id: g4fsk_decoding
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    movav: '30'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1528, 1004.0]
+    rotation: 0
+    state: enabled
+- name: import_0_0
+  id: import
+  parameters:
+    alias: ''
+    comment: ''
+    imports: import numpy as np
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [272, 108.0]
+    rotation: 0
+    state: enabled
+- name: interp_fir_filter_xxx_0
+  id: interp_fir_filter_xxx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Gaussian filter
+    interp: '1'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    samp_delay: '0'
+    taps: taps.generate_taps(4, 0.25)
+    type: fff
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1984, 532.0]
+    rotation: 0
+    state: enabled
+- name: interp_fir_filter_xxx_0_0
+  id: interp_fir_filter_xxx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: Gaussian filter
+    interp: '1'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    samp_delay: '0'
+    taps: taps.generate_taps(4, 0.25)
+    type: fff
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1992, 308.0]
+    rotation: 0
+    state: enabled
+- name: qtgui_freq_sink_x_0
+  id: qtgui_freq_sink_x
+  parameters:
+    affinity: ''
+    alias: ''
+    alpha1: '1.0'
+    alpha10: '1.0'
+    alpha2: '1.0'
+    alpha3: '1.0'
+    alpha4: '1.0'
+    alpha5: '1.0'
+    alpha6: '1.0'
+    alpha7: '1.0'
+    alpha8: '1.0'
+    alpha9: '1.0'
+    autoscale: 'False'
+    average: '1.0'
+    axislabels: 'True'
+    bw: samp_rate
+    color1: '"blue"'
+    color10: '"dark blue"'
+    color2: '"red"'
+    color3: '"green"'
+    color4: '"black"'
+    color5: '"cyan"'
+    color6: '"magenta"'
+    color7: '"yellow"'
+    color8: '"dark red"'
+    color9: '"dark green"'
+    comment: ''
+    ctrlpanel: 'False'
+    fc: '0'
+    fftsize: '1024'
+    freqhalf: 'True'
+    grid: 'False'
+    gui_hint: ''
+    label: Relative Gain
+    label1: ''
+    label10: ''''''
+    label2: ''''''
+    label3: ''''''
+    label4: ''''''
+    label5: ''''''
+    label6: ''''''
+    label7: ''''''
+    label8: ''''''
+    label9: ''''''
+    legend: 'True'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    name: '""'
+    nconnections: '1'
+    norm_window: 'False'
+    showports: 'False'
+    tr_chan: '0'
+    tr_level: '0.0'
+    tr_mode: qtgui.TRIG_MODE_FREE
+    tr_tag: '""'
+    type: complex
+    units: dB
+    update_time: '0.10'
+    width1: '1'
+    width10: '1'
+    width2: '1'
+    width3: '1'
+    width4: '1'
+    width5: '1'
+    width6: '1'
+    width7: '1'
+    width8: '1'
+    width9: '1'
+    wintype: window.WIN_BLACKMAN_hARRIS
+    ymax: '10'
+    ymin: '-140'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [880, 1624.0]
+    rotation: 0
+    state: enabled
+- name: taps
+  id: epy_module
+  parameters:
+    alias: ''
+    comment: 'Calculates gaussian
+
+      filter taps'
+    source_code: "import numpy as np\r\nfrom gnuradio import filter\r\n\r\ndef generate_taps(samples_per_symbol,\
+      \ bt):\r\n    samples_per_symbol = int(samples_per_symbol)\r\n    ntaps = 4\
+      \ * samples_per_symbol\r\n\r\n    # Generate Gaussian filter taps\r\n    gaussian_taps\
+      \ = filter.firdes.gaussian(\r\n        1,                       # gain\r\n \
+      \       samples_per_symbol,      # symbol_rate\r\n        bt,              \
+      \        # bandwidth * symbol time\r\n        ntaps                    # number\
+      \ of taps\r\n    )\r\n\r\n    taps = np.convolve(np.array(gaussian_taps), np.ones(samples_per_symbol))\r\
+      \n    return taps"
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [784, 20.0]
+    rotation: 0
+    state: enabled
+- name: th
+  id: epy_module
+  parameters:
+    alias: ''
+    comment: "Calculates the throughput\nin bps for the selected \nmodcod"
+    source_code: "import json\r\nimport numpy as np\r\n\r\n\r\nfile_name = r\"C:\\\
+      Users\\chri0\\Documents\\GitHub\\SDR_Ground_Station\\hardwareImplementation\\\
+      phy\\physical_layer_transmitter\\MODCOD.json\"\r\n\r\ndata:dict\r\nwith open(file_name,\
+      \ 'r') as f:\r\n    data = json.load(f)\r\n\r\ndef modcod(bw, modcod):\r\n \
+      \   spectral_eff = data[modcod][\"SPECT\"]\r\n    throughput = spectral_eff\
+      \ * bw\r\n    return throughput\r\n"
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [568, 20.0]
+    rotation: 0
+    state: enabled
+- name: virtual_sink_0
+  id: virtual_sink
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: usrp
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [3872, 420.0]
+    rotation: 0
+    state: enabled
+- name: virtual_sink_1
+  id: virtual_sink
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: msg_in
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [448, 1852.0]
+    rotation: 0
+    state: enabled
+- name: virtual_sink_2
+  id: virtual_sink
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: msg_out
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1028.0, 608]
+    rotation: 270
+    state: enabled
+- name: virtual_sink_2_0
+  id: virtual_sink
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: msg_out2
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [3324.0, 576]
+    rotation: 270
+    state: enabled
+- name: virtual_sink_2_0_0
+  id: virtual_sink
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: msg_out3
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [3676.0, 576]
+    rotation: 270
+    state: enabled
+- name: virtual_sink_2_1
+  id: virtual_sink
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: msg_out4
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [468.0, 1288]
+    rotation: 270
+    state: enabled
+- name: virtual_sink_2_1_0
+  id: virtual_sink
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: msg_out6
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [2156.0, 1264]
+    rotation: 270
+    state: enabled
+- name: virtual_sink_2_1_1
+  id: virtual_sink
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: msg_out5
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [700.0, 1528]
+    rotation: 270
+    state: enabled
+- name: virtual_source_0
+  id: virtual_source
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: usrp
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [56, 1156.0]
+    rotation: 0
+    state: enabled
+- name: virtual_source_1
+  id: virtual_source
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: msg_out
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [648, 1828.0]
+    rotation: 0
+    state: enabled
+- name: virtual_source_1_0
+  id: virtual_source
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: msg_in
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [956.0, 616]
+    rotation: 90
+    state: enabled
+- name: virtual_source_1_0_0
+  id: virtual_source
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: msg_in
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [3244.0, 584]
+    rotation: 90
+    state: enabled
+- name: virtual_source_1_0_0_0
+  id: virtual_source
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: msg_in
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [3596.0, 584]
+    rotation: 90
+    state: enabled
+- name: virtual_source_1_0_1
+  id: virtual_source
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: msg_in
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [356.0, 1304]
+    rotation: 90
+    state: enabled
+- name: virtual_source_1_0_1_0
+  id: virtual_source
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: msg_in
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [2076.0, 1280]
+    rotation: 90
+    state: enabled
+- name: virtual_source_1_1
+  id: virtual_source
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: msg_out2
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [648, 1892.0]
+    rotation: 0
+    state: enabled
+- name: virtual_source_1_1_0
+  id: virtual_source
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: msg_out3
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [648, 1956.0]
+    rotation: 0
+    state: enabled
+- name: virtual_source_1_1_0_1
+  id: virtual_source
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: msg_out4
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [648, 2028.0]
+    rotation: 0
+    state: enabled
+- name: virtual_source_1_1_0_1_0
+  id: virtual_source
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: msg_out5
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [648, 2092.0]
+    rotation: 0
+    state: enabled
+- name: virtual_source_1_1_0_1_0_0
+  id: virtual_source
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: msg_out6
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [648, 2172.0]
+    rotation: 0
+    state: enabled
+- name: zeromq_pub_msg_sink_0
+  id: zeromq_pub_msg_sink
+  parameters:
+    address: tcp://*:5556
+    affinity: ''
+    alias: ''
+    bind: 'True'
+    comment: ''
+    timeout: '100'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1008, 1860.0]
+    rotation: 0
+    state: true
+- name: zeromq_rep_sink_0
+  id: zeromq_rep_sink
+  parameters:
+    address: tcp://*:5557
+    affinity: ''
+    alias: ''
+    bind: 'True'
+    comment: Rx
+    hwm: '-1'
+    pass_tags: 'False'
+    timeout: '100'
+    type: byte
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [2752, 1044.0]
+    rotation: 0
+    state: disabled
+- name: zeromq_req_source_0
+  id: zeromq_req_source
+  parameters:
+    address: tcp://localhost:5558
+    affinity: ''
+    alias: ''
+    bind: 'False'
+    comment: Tx
+    hwm: '-1'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    pass_tags: 'False'
+    timeout: '100'
+    type: byte
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [40, 484.0]
+    rotation: 0
+    state: disabled
+- name: zeromq_sub_msg_source_0
+  id: zeromq_sub_msg_source
+  parameters:
+    address: tcp://localhost:5555
+    affinity: ''
+    alias: ''
+    bind: 'False'
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    timeout: '100'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [96, 1844.0]
+    rotation: 0
+    state: true
+
+connections:
+- [analog_frequency_modulator_fc_0, '0', epy_block_1_0_0, '2']
+- [analog_frequency_modulator_fc_0_0, '0', epy_block_1_0_0, '1']
+- [analog_quadrature_demod_cf_0, '0', digital_symbol_sync_xx_1_0, '0']
+- [analog_quadrature_demod_cf_1, '0', digital_symbol_sync_xx_1_0_0, '0']
+- [analog_quadrature_demod_cf_2, '0', digital_symbol_sync_xx_1_0_0_0, '0']
+- [analog_random_source_x_0, '0', blocks_packed_to_unpacked_xx_0, '0']
+- [blocks_float_to_uchar_0, '0', epy_block_1_0_0_0, '0']
+- [blocks_packed_to_unpacked_xx_0, '0', blocks_throttle2_0, '0']
+- [blocks_repack_bits_bb_0, '0', blocks_null_sink_1, '0']
+- [blocks_stream_to_vector_0, '0', epy_block_2_0, '0']
+- [blocks_throttle2_0, '0', epy_block_0, '0']
+- [blocks_vco_f_1, '0', freq_xlating_fir_filter_xxx_0, '0']
+- [blocks_vco_f_1, '0', freq_xlating_fir_filter_xxx_0_0_0, '0']
+- [digital_binary_slicer_fb_0, '0', epy_block_1_0_0_0, '2']
+- [digital_binary_slicer_fb_0_0, '0', epy_block_1_0_0_0, '1']
+- [digital_chunks_to_symbols_xx_0, '0', interp_fir_filter_xxx_0, '0']
+- [digital_chunks_to_symbols_xx_0_0, '0', analog_frequency_modulator_fc_0_0, '0']
+- [digital_chunks_to_symbols_xx_1, '0', interp_fir_filter_xxx_0_0, '0']
+- [digital_symbol_sync_xx_1_0, '0', digital_binary_slicer_fb_0, '0']
+- [digital_symbol_sync_xx_1_0_0, '0', digital_binary_slicer_fb_0_0, '0']
+- [digital_symbol_sync_xx_1_0_0_0, '0', g4fsk_decoding_0, '0']
+- [epy_block_0, '0', digital_chunks_to_symbols_xx_1, '0']
+- [epy_block_0, '1', digital_chunks_to_symbols_xx_0_0, '0']
+- [epy_block_0, '2', digital_chunks_to_symbols_xx_0, '0']
+- [epy_block_0, interp_out, blocks_msgpair_to_var_1, inpair]
+- [epy_block_0, msg_out, virtual_sink_2, '0']
+- [epy_block_0, repack_out, blocks_msgpair_to_var_0, inpair]
+- [epy_block_0_0, '0', analog_quadrature_demod_cf_2, '0']
+- [epy_block_0_0, '1', analog_quadrature_demod_cf_1, '0']
+- [epy_block_0_0, '2', analog_quadrature_demod_cf_0, '0']
+- [epy_block_0_0, msg_out, virtual_sink_2_1, '0']
+- [epy_block_0_0_0, '0', blocks_null_sink_0, '0']
+- [epy_block_0_0_0, '0', virtual_sink_0, '0']
+- [epy_block_0_0_0, msg_out, virtual_sink_2_0_0, '0']
+- [epy_block_0_1, '0', blocks_vco_f_1, '0']
+- [epy_block_1_0_0, '0', epy_block_0_0_0, '0']
+- [epy_block_1_0_0, msg_out, virtual_sink_2_0, '0']
+- [epy_block_1_0_0_0, '0', blocks_null_sink_1, '0']
+- [epy_block_1_0_0_0, '0', blocks_repack_bits_bb_0, '0']
+- [epy_block_1_0_0_0, msg_out, virtual_sink_2_1_0, '0']
+- [epy_block_2_0, msg_out, virtual_sink_2_1_1, '0']
+- [freq_xlating_fir_filter_xxx_0, '0', epy_block_1_0_0, '0']
+- [freq_xlating_fir_filter_xxx_0_0_0, '0', epy_block_1_0_0, '0']
+- [g4fsk_decoding_0, '0', blocks_float_to_uchar_0, '0']
+- [interp_fir_filter_xxx_0, '0', analog_frequency_modulator_fc_0, '0']
+- [interp_fir_filter_xxx_0_0, '0', epy_block_0_1, '0']
+- [virtual_source_0, '0', blocks_stream_to_vector_0, '0']
+- [virtual_source_0, '0', epy_block_0_0, '0']
+- [virtual_source_0, '0', qtgui_freq_sink_x_0, '0']
+- [virtual_source_1, '0', zeromq_pub_msg_sink_0, in]
+- [virtual_source_1_0, '0', epy_block_0, msg_in]
+- [virtual_source_1_0_0, '0', epy_block_1_0_0, msg_in]
+- [virtual_source_1_0_0_0, '0', epy_block_0_0_0, msg_in]
+- [virtual_source_1_0_1, '0', epy_block_0_0, msg_in]
+- [virtual_source_1_0_1_0, '0', epy_block_1_0_0_0, msg_in]
+- [virtual_source_1_1, '0', zeromq_pub_msg_sink_0, in]
+- [virtual_source_1_1_0, '0', zeromq_pub_msg_sink_0, in]
+- [virtual_source_1_1_0_1, '0', zeromq_pub_msg_sink_0, in]
+- [virtual_source_1_1_0_1_0, '0', zeromq_pub_msg_sink_0, in]
+- [virtual_source_1_1_0_1_0_0, '0', zeromq_pub_msg_sink_0, in]
+- [zeromq_req_source_0, '0', blocks_packed_to_unpacked_xx_0, '0']
+- [zeromq_sub_msg_source_0, out, virtual_sink_1, '0']
+
+metadata:
+  file_format: 1
+  grc_version: 3.10.9.2
