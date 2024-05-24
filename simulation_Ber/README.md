@@ -1,0 +1,5 @@
+- [v3](v3) contains the simulations for the different MODCODs, split into multiple files for simple parallelization.
+- `plotter4.py` Creates BER plots for the MODCODs
+- `snr_time.py` Generates MODCOS.json, and quantization plots.
+- `THRextract.m` Creates thresholds from simulation csv
+- [output](output) contains the generated plots and thresholds.
