@@ -3,7 +3,6 @@ import json
 import asyncio
 import threading
 import time
-from more_itertools import last
 from packet import *
 from gnuradio_interface import *
 import cmd
@@ -149,7 +148,7 @@ class Protocol:
                             else:
                                 continue
                     if index != 0:
-                        msgCollect = self.extractAndShiftData(msgCollect, 0, index + 1)
+                        msgCollect = self.extractAndShiftData(msgCollect, 0, index)
                     msgCollect = bytes(msgCollect)
                     await self.processReceivedMessage(msgCollect)
                     self.ringBuff.clear()
@@ -173,7 +172,7 @@ class Protocol:
                 new_byte = ((new_byte << 1) | ((data2 >> (7-x)) & 1)) & 0xFF
 
             if new_byte == startbyte:
-                return x
+                return 0
 
         return -1
 
@@ -225,6 +224,16 @@ class Protocol:
         SENDmodcod = {"reed": self.txmodcod["reed"], "conv": self.txmodcod["conv"]}
         data = bytearray(Framer(data=Packet(Data=message, Modcod=SENDmodcod).postman(), acm=acm).scramble())
         self.send.send(data)
+
+    async def generate_zero_stream(self, num_packets):
+        """ Generate a stream of constant 0s and load it into the message queue. """
+        logging.info("Generating stream of zeros...")
+        packet_size = int(self.txmaxPayloadLength)
+        for _ in range(num_packets):
+            zero_packet = bytes(b'\xaf' * packet_size)  # Generate a packet of constant 0s
+            await self.addtoQueue(zero_packet)  # Add the packet to the message queue
+            await asyncio.sleep(0.01)  # Yield control to avoid blocking
+        logging.info(f"Generated {num_packets} packets of zeros.")
 
     async def setModcod(self):
         snr = self.ctrl.getVar(instructions.snr)
@@ -295,6 +304,20 @@ class ProtocolCLI(cmd.Cmd):
         self.loop = loop
         self.protocol = protocol
         self.test_process = None
+        self.data_stream_task = None
+
+    def do_generate_zeros(self, arg):
+        """Generate a stream of zeros: GENERATE_ZEROS <num_packets>"""
+        try:
+            num_packets = int(arg.strip())
+            if num_packets <= 0:
+                logging.error("The number of packets must be a positive integer.")
+                return
+            self.loop.create_task(self.protocol.generate_zero_stream(num_packets))
+            logging.info(f"Generating {num_packets} packets of zeros.")
+        except ValueError:
+            logging.error("Invalid number of packets. Please enter a positive integer.")
+    
 
     def do_send(self, arg):
         'Send a message: SEND <message>'
