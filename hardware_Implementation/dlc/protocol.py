@@ -3,6 +3,8 @@ import json
 import asyncio
 import threading
 import time
+import numpy as np
+from matplotlib.pylab import rand
 from packet import *
 from gnuradio_interface import *
 import cmd
@@ -225,13 +227,14 @@ class Protocol:
         data = bytearray(Framer(data=Packet(Data=message, Modcod=SENDmodcod).postman(), acm=acm).scramble())
         self.send.send(data)
 
-    async def generate_zero_stream(self, num_packets):
-        """ Generate a stream of constant 0s and load it into the message queue. """
-        logging.info("Generating stream of zeros...")
+    async def generate_data_stream(self, num_packets):
+        """ Generate a stream of '10' and load it into the message queue. """
+        logging.info("Generating data stream...")
         packet_size = int(self.txmaxPayloadLength)
         for _ in range(num_packets):
-            zero_packet = bytes(b'\xaf' * packet_size)  # Generate a packet of constant 0s
-            await self.addtoQueue(zero_packet)  # Add the packet to the message queue
+            rand_packet = np.random.randint(0, 255, packet_size, dtype=np.uint8) # Generate a packet of random bytes
+            rand_packet = rand_packet.tobytes()           
+            await self.addtoQueue(rand_packet)  # Add the packet to the message queue
             await asyncio.sleep(0.01)  # Yield control to avoid blocking
         logging.info(f"Generated {num_packets} packets of zeros.")
 
@@ -292,6 +295,7 @@ class ProtocolCLI(cmd.Cmd):
     Type send <message> to send a message.
     Type setmodcod <modcod_id> to set the modulation and coding scheme.
     Type status to print the current status of the protocol.
+    Type generate_data to send packets of '1's and '0's.
     Type set_received <value> to set the received count.
     Type reinit_sockets to reinitialize the command, transmit, and receive sockets.
     Type run_test to execute the test.py script.
@@ -306,15 +310,15 @@ class ProtocolCLI(cmd.Cmd):
         self.test_process = None
         self.data_stream_task = None
 
-    def do_generate_zeros(self, arg):
-        """Generate a stream of zeros: GENERATE_ZEROS <num_packets>"""
+    def do_generate_data(self, arg):
+        """Generate a stream of zeros: generate_data <num_packets>"""
         try:
             num_packets = int(arg.strip())
             if num_packets <= 0:
                 logging.error("The number of packets must be a positive integer.")
                 return
-            self.loop.create_task(self.protocol.generate_zero_stream(num_packets))
-            logging.info(f"Generating {num_packets} packets of zeros.")
+            self.loop.create_task(self.protocol.generate_data_stream(num_packets))
+            logging.info(f"Generating {num_packets} packets of data.")
         except ValueError:
             logging.error("Invalid number of packets. Please enter a positive integer.")
     

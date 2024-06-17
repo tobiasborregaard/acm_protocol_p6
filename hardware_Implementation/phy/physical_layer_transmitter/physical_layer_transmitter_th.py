@@ -2,7 +2,7 @@ import json
 import numpy as np
 
 
-file_name = r"C:\Users\chri0\Documents\GitHub\SDR_Ground_Station\hardwareImplementation\phy\physical_layer_transmitter\MODCOD.json"
+file_name = r"C:\Users\chri0\Documents\GitHub\acm_protocol_p6\hardware_Implementation\phy\physical_layer_transmitter\MODCOD.json"
 # file_name = "MODCOD.json"
 data:dict
 with open(file_name, 'r') as f:

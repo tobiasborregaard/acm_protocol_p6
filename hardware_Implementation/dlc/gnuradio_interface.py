@@ -18,7 +18,7 @@ class instructions(enum.Enum):
     modCodRecv  = [instructions_dataclass("demux", "modcod", str), instructions_dataclass("demux_1", "modcod", str)]
     modCodTx    = [instructions_dataclass("mux", "modcod", str), instructions_dataclass("mux_1", "modcod", str)]
     testSnr     = instructions_dataclass("awgn", "snr", float)
-    snr         = instructions_dataclass("snr_meas", "snr", float) 
+    snr         = instructions_dataclass("snr_meas", "snrAvg", float) 
 
 
 
