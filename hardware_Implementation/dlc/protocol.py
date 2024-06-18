@@ -76,7 +76,7 @@ class Protocol:
     async def check_state(self):
 
         while True:
-            if time.time()-self.lastT >= 60:
+            if time.time()-self.lastT >= 30:
                 self.updateModcod("1")
                 self.txupdateModcod(self.MODCODS["1"])
                 self.lastT = time.time()
