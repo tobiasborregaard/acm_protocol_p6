@@ -236,7 +236,7 @@ class Protocol:
             rand_packet = rand_packet.tobytes()           
             await self.addtoQueue(rand_packet)  # Add the packet to the message queue
             await asyncio.sleep(0.01)  # Yield control to avoid blocking
-        logging.info(f"Generated {num_packets} packets of zeros.")
+        logging.info(f"Generated {num_packets} packets.")
 
     async def setModcod(self):
         snr = self.ctrl.getVar(instructions.snr)
@@ -311,7 +311,7 @@ class ProtocolCLI(cmd.Cmd):
         self.data_stream_task = None
 
     def do_generate_data(self, arg):
-        """Generate a stream of zeros: generate_data <num_packets>"""
+        """Generate a stream of data: generate_data <num_packets>"""
         try:
             num_packets = int(arg.strip())
             if num_packets <= 0:
