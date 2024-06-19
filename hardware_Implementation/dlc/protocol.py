@@ -71,25 +71,26 @@ class Protocol:
                 await asyncio.sleep(0.5)
             else:
                 await self.msgQueue()
-                await asyncio.sleep(0.1)
+                await asyncio.sleep(0.01)
 
     async def check_state(self):
 
         while True:
-            if time.time()-self.lastT >= 30:
-                self.updateModcod("1")
+            if time.time()-self.lastT >= 15: # 30 sec
                 self.txupdateModcod(self.MODCODS["1"])
+                self.updateModcod("1")
+                # self.received = 0
                 self.lastT = time.time()
 
                 await asyncio.sleep(0.01)
-            if self.received >= 10:
+            if self.received >= 10: 
                 self.received = 0
                 await self.setModcod()
                 self.lastT = time.time()
                 await asyncio.sleep(0.01)
 
             else:
-                await asyncio.sleep(0.2)
+                await asyncio.sleep(0.05)
 
     async def loadMSG(self, message):
         await self.chunkMessage(message)
@@ -127,6 +128,7 @@ class Protocol:
             else:
                 cache = bytes(self.ringBuff)
                 index = self.findStartByte(cache)
+                self.lastT = time.time()
                 if index != -1:
                     self.found = True
                     msgCollect = self.ringBuff[:]
@@ -218,7 +220,8 @@ class Protocol:
         else:
             self.received += 1
             try:
-                logging.info(f"Received message: {msg}")
+                pass
+                #logging.info(f"Received message: {msg}")
             except UnicodeDecodeError as e:
                 logging.error(f"Error decoding message: {e}")
 
@@ -295,7 +298,7 @@ class ProtocolCLI(cmd.Cmd):
     Type send <message> to send a message.
     Type setmodcod <modcod_id> to set the modulation and coding scheme.
     Type status to print the current status of the protocol.
-    Type generate_data to send packets of '1's and '0's.
+    Type generate_data to send packets of random values.
     Type set_received <value> to set the received count.
     Type reinit_sockets to reinitialize the command, transmit, and receive sockets.
     Type run_test to execute the test.py script.
@@ -341,7 +344,7 @@ class ProtocolCLI(cmd.Cmd):
             logging.error(f'Invalid modcod ID: {arg}')
 
     def do_setsnr(self, arg):
-        'Set the SNR between 2-14: setsnr <value>'
+        'Set the SNR: setsnr <value>'
         try:
             value = float(arg)
             self.protocol.ctrl.setVar(instructions.snr, value)
