@@ -6,7 +6,7 @@ import json
 
 class blk(gr.sync_block):  # other base classes are basic_block, decim_block, interp_block
 
-    def __init__(self, addr = "modcod"):  # only default arguments here
+    def __init__(self, addr = "modcod", samprate=32000):  # only default arguments here
         gr.sync_block.__init__(
             self,
             name='DEMUX',   # will show up in GRC
@@ -15,19 +15,24 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
         )
         self.addr = addr
         self.modcod = "1" # default modcod
-       
+        self.sps = 4
+        self.samp_rate = samprate
 
         # read MODCOD from json file
         self.filename = "MODCOD.json"
         self.json_data = None
         
         
+        self.decimation = 1
+        self.bandwidth = 25000
         # message port setup
         self.message_in = 'msg_in'
         self.message_port_register_in(pmt.intern(self.message_in))
         self.set_msg_handler(pmt.intern(self.message_in), self.mailbox)
         self.message_out = 'msg_out'
         self.message_port_register_out(pmt.intern(self.message_out))
+        self.message_out3 = 'decim_out'
+        self.message_port_register_out(pmt.intern(self.message_out3))
         
     def extract_pmt(self, msg):
         try:
@@ -42,6 +47,20 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
         else: return False
 
 
+    def updatedecimate(self):
+        print("Updating")
+        modcod_spect = self.json_data[self.modcod]["SPECT"]     
+        throughput = modcod_spect*self.bandwidth
+        if self.json_data[self.modcod]["MOD"] == "g4FSK":
+            throughput = 0.5*throughput # symbol rate conversion
+               # Calculate the decimation factor for the bitrate of the rational resampler
+        self.decimation = self.samp_rate/(throughput*self.sps)
+        print(self.decimation)
+        # Define the interpolation rate globally using msg output
+        decimation = pmt.to_pmt(self.decimation)
+        decim_msg = pmt.cons(pmt.string_to_symbol("decimation"), decimation)
+        self.message_port_pub(pmt.intern(self.message_out3), decim_msg)
+
     def mailbox(self, msg):
         r = {}
         try:
@@ -52,6 +71,7 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
             if data == False: return 
 
             varname = list(data[1].keys())[0]
+            print(varname)
             if varname not in self.__dict__:
                 raise Exception("Err: Unknown variable")
             
@@ -62,6 +82,8 @@ class blk(gr.sync_block):  # other base classes are basic_block, decim_block, in
                     raise Exception("Err: Variable in wrong format")
                 else:
                     self.__dict__[varname] = data[1][varname]
+                    if varname == "modcod":
+                        self.updatedecimate()
                     r[varname] = "ok"
             
             #If address return with SRC

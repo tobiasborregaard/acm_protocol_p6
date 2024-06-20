@@ -4,6 +4,7 @@ from gnuradio import filter
 def generate_taps(samples_per_symbol, bt):
     samples_per_symbol = int(samples_per_symbol)
     ntaps = 4 * samples_per_symbol
+    
 
     # Generate Gaussian filter taps
     gaussian_taps = filter.firdes.gaussian(

@@ -16,7 +16,7 @@ import os
 logging.basicConfig(level=logging.DEBUG, format=' %(levelname)s - %(message)s\n')
 
 class Protocol:
-    def __init__(self, Earth=None, Message=None):
+    def __init__(self, Earth=None, Message=None, ports = [5555, 5556, 5558, 5557]):
         self.earth = Earth
         self.message = Message
         self.messageQueue = asyncio.Queue()
@@ -26,9 +26,9 @@ class Protocol:
             self.MODCODS = json.load(f)
         self.modcod = self.MODCODS["1"]
         self.txmodcod = self.MODCODS["1"]
-        self.ctrl = cmdSock()
-        self.send = transmitSock()
-        self.recv = recvSock()
+        self.ctrl = cmdSock(serverPort=ports[0], gnuRadioPort=ports[1])
+        self.send = transmitSock(port=ports[2])
+        self.recv = recvSock(port=ports[3])
         thread = threading.Thread(target=self.recv.run)
         thread.start()
         self.lastT = time.time()
@@ -114,7 +114,7 @@ class Protocol:
     async def syncByteRingBuffer(self):
         await asyncio.sleep(0.01)
         while True:
-            if len(self.ringBuff) < 2 and not self.found:
+            if len(self.ringBuff) < 3 and not self.found: #Changed to 3 from 2
                 try:
                     if self.recv.dataqueue.empty():
                         await asyncio.sleep(0.1)
@@ -126,12 +126,12 @@ class Protocol:
                     logging.warning("Timeout waiting for data")
                     continue
             else:
-                cache = bytes(self.ringBuff)
+                cache = bytes(self.ringBuff[1:])
                 index = self.findStartByte(cache)
                 self.lastT = time.time()
-                if index != -1:
+                if index != -1 and self.extractAndShiftData(self.ringBuff, 0, index)[0] == 0xAA:
                     self.found = True
-                    msgCollect = self.ringBuff[:]
+                    msgCollect = self.ringBuff[1:]
                     if int(self.rxmaxLength) == 1:
                         self.rxmaxLength = 255
                     retries = 100
@@ -151,7 +151,9 @@ class Protocol:
                                 break
                             else:
                                 continue
-                    if index != 0:
+                    if index == 8:
+                        msgCollect = msgCollect[1:] 
+                    elif index != 0:
                         msgCollect = self.extractAndShiftData(msgCollect, 0, index)
                     msgCollect = bytes(msgCollect)
                     await self.processReceivedMessage(msgCollect)
@@ -176,7 +178,7 @@ class Protocol:
                 new_byte = ((new_byte << 1) | ((data2 >> (7-x)) & 1)) & 0xFF
 
             if new_byte == startbyte:
-                return 0
+                return 8
 
         return -1
 
@@ -201,8 +203,10 @@ class Protocol:
 
     async def processReceivedMessage(self, message):
         acm, msg = Framer(data=message).descramble()
-        msg = Mail(rx=msg, modcod=self.modcod).mailman()
-
+        try:
+            msg = Mail(rx=msg, modcod=self.modcod).mailman()
+        except:
+            return
         if msg is None:
             logging.warning("Received message is None, skipping processing.")
             return  # Exit the function if msg is None

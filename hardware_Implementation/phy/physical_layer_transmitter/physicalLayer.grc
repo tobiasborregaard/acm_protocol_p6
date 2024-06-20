@@ -57,6 +57,18 @@ blocks:
     coordinate: [408, 108.0]
     rotation: 0
     state: enabled
+- name: decimation_rx
+  id: variable
+  parameters:
+    comment: ''
+    value: samp_rate/(sps*th.modcod(bandwidth, "1"))
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [520, 112.0]
+    rotation: 0
+    state: enabled
 - name: repack_size
   id: variable
   parameters:
@@ -131,14 +143,14 @@ blocks:
     affinity: ''
     alias: ''
     comment: ''
-    gain: '1'
+    gain: (np.pi/2)/sps
     maxoutbuf: '0'
     minoutbuf: '0'
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1008, 1444.0]
+    coordinate: [1032, 1432.0]
     rotation: 0
     state: enabled
 - name: analog_quadrature_demod_cf_1
@@ -173,14 +185,37 @@ blocks:
     coordinate: [992, 1052.0]
     rotation: 0
     state: enabled
+- name: analog_random_source_x_0
+  id: analog_random_source_x
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    max: '255'
+    maxoutbuf: '0'
+    min: '0'
+    minoutbuf: '0'
+    num_samps: '1000'
+    repeat: 'True'
+    type: byte
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [232, 360.0]
+    rotation: 0
+    state: disabled
 - name: blocks_float_to_uchar_0
   id: blocks_float_to_uchar
   parameters:
     affinity: ''
     alias: ''
+    bias: '0'
     comment: ''
     maxoutbuf: '0'
     minoutbuf: '0'
+    scale: '1'
+    vlen: '1'
   states:
     bus_sink: false
     bus_source: false
@@ -216,6 +251,54 @@ blocks:
     coordinate: [1132.0, 640]
     rotation: 270
     state: enabled
+- name: blocks_msgpair_to_var_1_0
+  id: blocks_msgpair_to_var
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    target: decimation_rx
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [912.0, 1544]
+    rotation: 270
+    state: enabled
+- name: blocks_null_sink_0
+  id: blocks_null_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    bus_structure_sink: '[[0,],]'
+    comment: ''
+    num_inputs: '1'
+    type: byte
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [2656, 1000.0]
+    rotation: 0
+    state: enabled
+- name: blocks_null_sink_1
+  id: blocks_null_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    bus_structure_sink: '[[0,],]'
+    comment: ''
+    num_inputs: '1'
+    type: byte
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [2936, 1408.0]
+    rotation: 0
+    state: disabled
 - name: blocks_repack_bits_bb_0
   id: blocks_repack_bits_bb
   parameters:
@@ -292,6 +375,24 @@ blocks:
     coordinate: [104, 1440.0]
     rotation: 0
     state: enabled
+- name: blocks_stream_to_vector_1
+  id: blocks_stream_to_vector
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_items: '64'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [2992, 632.0]
+    rotation: 0
+    state: enabled
 - name: blocks_throttle2_0
   id: blocks_throttle2
   parameters:
@@ -327,7 +428,7 @@ blocks:
     bus_structure: null
     coordinate: [2672, 1096.0]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: blocks_uchar_to_float_1_0
   id: blocks_uchar_to_float
   parameters:
@@ -342,7 +443,7 @@ blocks:
     bus_structure: null
     coordinate: [2672, 1144.0]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: blocks_vco_c_0
   id: blocks_vco_c
   parameters:
@@ -359,6 +460,24 @@ blocks:
     bus_source: false
     bus_structure: null
     coordinate: [2152, 296.0]
+    rotation: 0
+    state: enabled
+- name: blocks_vector_to_stream_0
+  id: blocks_vector_to_stream
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_items: '64'
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [128, 960.0]
     rotation: 0
     state: enabled
 - name: digital_binary_slicer_fb_0
@@ -459,7 +578,7 @@ blocks:
     comment: ''
     constellation: digital.constellation_bpsk().base()
     damping: '1.0'
-    loop_bw: '0.045'
+    loop_bw: '0.1'
     max_dev: '1.5'
     maxoutbuf: '0'
     minoutbuf: '0'
@@ -469,7 +588,7 @@ blocks:
     resamp_type: digital.IR_PFB_NO_MF
     sps: sps
     ted_gain: '1.0'
-    ted_type: digital.TED_SIGNAL_TIMES_SLOPE_ML
+    ted_type: digital.TED_MUELLER_AND_MULLER
     type: ff
   states:
     bus_sink: false
@@ -628,38 +747,53 @@ blocks:
   parameters:
     _source_code: "import numpy as np\nfrom gnuradio import gr\nimport pmt\nimport\
       \ json\n\n\nclass blk(gr.sync_block):  # other base classes are basic_block,\
-      \ decim_block, interp_block\n\n    def __init__(self, addr = \"modcod\"):  #\
-      \ only default arguments here\n        gr.sync_block.__init__(\n           \
-      \ self,\n            name='DEMUX',   # will show up in GRC\n            in_sig\
+      \ decim_block, interp_block\n\n    def __init__(self, addr = \"modcod\", samprate=32000):\
+      \  # only default arguments here\n        gr.sync_block.__init__(\n        \
+      \    self,\n            name='DEMUX',   # will show up in GRC\n            in_sig\
       \ = [np.complex64], \n            out_sig = [np.complex64, np.complex64, np.complex64]\n\
       \        )\n        self.addr = addr\n        self.modcod = \"1\" # default\
-      \ modcod\n       \n\n        # read MODCOD from json file\n        self.filename\
-      \ = \"MODCOD.json\"\n        self.json_data = None\n        \n        \n   \
-      \     # message port setup\n        self.message_in = 'msg_in'\n        self.message_port_register_in(pmt.intern(self.message_in))\n\
+      \ modcod\n        self.sps = 4\n        self.samp_rate = samprate\n\n      \
+      \  # read MODCOD from json file\n        self.filename = \"MODCOD.json\"\n \
+      \       self.json_data = None\n        \n        \n        self.decimation =\
+      \ 1\n        self.bandwidth = 25000\n        # message port setup\n        self.message_in\
+      \ = 'msg_in'\n        self.message_port_register_in(pmt.intern(self.message_in))\n\
       \        self.set_msg_handler(pmt.intern(self.message_in), self.mailbox)\n \
       \       self.message_out = 'msg_out'\n        self.message_port_register_out(pmt.intern(self.message_out))\n\
+      \        self.message_out3 = 'decim_out'\n        self.message_port_register_out(pmt.intern(self.message_out3))\n\
       \        \n    def extract_pmt(self, msg):\n        try:\n            data =\
       \ pmt.to_python(msg)\n        except:\n            self.message_port_pub(pmt.intern(self.message_out),\
       \ pmt.to_pmt(\"Err: Invalid format\"))\n        return data\n\n    def unpack(self,\
       \ msg):\n        if msg[0] == self.addr:\n            return msg[1:]\n     \
-      \   else: return False\n\n\n    def mailbox(self, msg):\n        r = {}\n  \
-      \      try:\n            data = self.extract_pmt(msg)\n\n            #If address\
-      \ check is active:\n            data = self.unpack(data)\n            if data\
-      \ == False: return \n\n            varname = list(data[1].keys())[0]\n     \
-      \       if varname not in self.__dict__:\n                raise Exception(\"\
+      \   else: return False\n\n\n    def updatedecimate(self):\n        print(\"\
+      Updating\")\n        modcod_spect = self.json_data[self.modcod][\"SPECT\"] \
+      \    \n        throughput = modcod_spect*self.bandwidth\n        if self.json_data[self.modcod][\"\
+      MOD\"] == \"g4FSK\":\n            throughput = 0.5*throughput # symbol rate\
+      \ conversion\n               # Calculate the decimation factor for the bitrate\
+      \ of the rational resampler\n        self.decimation = self.samp_rate/(throughput*self.sps)\n\
+      \        print(self.decimation)\n        # Define the interpolation rate globally\
+      \ using msg output\n        decimation = pmt.to_pmt(self.decimation)\n     \
+      \   decim_msg = pmt.cons(pmt.string_to_symbol(\"decimation\"), decimation)\n\
+      \        self.message_port_pub(pmt.intern(self.message_out3), decim_msg)\n\n\
+      \    def mailbox(self, msg):\n        r = {}\n        try:\n            data\
+      \ = self.extract_pmt(msg)\n\n            #If address check is active:\n    \
+      \        data = self.unpack(data)\n            if data == False: return \n\n\
+      \            varname = list(data[1].keys())[0]\n            print(varname)\n\
+      \            if varname not in self.__dict__:\n                raise Exception(\"\
       Err: Unknown variable\")\n            \n            if data[0].lower() == \"\
       get\":\n                r[varname] = self.__dict__[varname]\n            elif\
       \ data[0].lower() == \"set\":\n                if type(data[1][varname]) !=\
       \ type(self.__dict__[varname]):\n                    raise Exception(\"Err:\
       \ Variable in wrong format\")\n                else:\n                    self.__dict__[varname]\
-      \ = data[1][varname]\n                    r[varname] = \"ok\"\n            \n\
-      \            #If address return with SRC\n            r = [self.addr, r]\n\n\
-      \            self.message_port_pub(pmt.intern(self.message_out), pmt.to_pmt(r))\n\
-      \            return\n\n        except Exception as e:\n            self.message_port_pub(pmt.intern(self.message_out),\
-      \ pmt.to_pmt(str(e)))\n   \n    def work(self, input_items, output_items):\n\
-      \        if self.json_data == None:\n            with open(self.filename) as\
-      \ json_file:\n                self.json_data = json.load(json_file)\n      \
-      \      \n        # determine the appropriate modcod\n        modcod_idx = self.json_data[self.modcod][\"\
+      \ = data[1][varname]\n                    if varname == \"modcod\":\n      \
+      \                  self.updatedecimate()\n                    r[varname] = \"\
+      ok\"\n            \n            #If address return with SRC\n            r =\
+      \ [self.addr, r]\n\n            self.message_port_pub(pmt.intern(self.message_out),\
+      \ pmt.to_pmt(r))\n            return\n\n        except Exception as e:\n   \
+      \         self.message_port_pub(pmt.intern(self.message_out), pmt.to_pmt(str(e)))\n\
+      \   \n    def work(self, input_items, output_items):\n        if self.json_data\
+      \ == None:\n            with open(self.filename) as json_file:\n           \
+      \     self.json_data = json.load(json_file)\n            \n        # determine\
+      \ the appropriate modcod\n        modcod_idx = self.json_data[self.modcod][\"\
       MOD\"]\n        match modcod_idx:\n            case \"g4FSK\":\n           \
       \     modcod_idx = 0\n            case \"MSK\":\n                modcod_idx\
       \ = 1\n            case \"gMSK\":\n                modcod_idx = 2\n        \
@@ -671,10 +805,12 @@ blocks:
     comment: ''
     maxoutbuf: '0'
     minoutbuf: '0'
+    samprate: samp_rate
   states:
-    _io_cache: ('DEMUX', 'blk', [('addr', "'modcod'")], [('0', 'complex', 1), ('msg_in',
-      'message', 1)], [('0', 'complex', 1), ('1', 'complex', 1), ('2', 'complex',
-      1), ('msg_out', 'message', 1)], '', ['addr'])
+    _io_cache: ('DEMUX', 'blk', [('addr', "'modcod'"), ('samprate', '32000')], [('0',
+      'complex', 1), ('msg_in', 'message', 1)], [('0', 'complex', 1), ('1', 'complex',
+      1), ('2', 'complex', 1), ('decim_out', 'message', 1), ('msg_out', 'message',
+      1)], '', ['addr'])
     bus_sink: false
     bus_source: false
     bus_structure: null
@@ -965,7 +1101,7 @@ blocks:
     maxoutbuf: '0'
     minoutbuf: '0'
     samp_delay: '0'
-    taps: taps.generate_taps(sps, 0.25)
+    taps: taps.generate_taps(sps, 0.5)
     type: fff
   states:
     bus_sink: false
@@ -1020,13 +1156,81 @@ blocks:
     maxoutbuf: '0'
     minoutbuf: '0'
     phase_shift: '0'
-    resamp_ratio: decimation
+    resamp_ratio: decimation_rx
     type: complex
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
     coordinate: [328, 1260.0]
+    rotation: 0
+    state: enabled
+- name: p_cmd_in
+  id: parameter
+  parameters:
+    alias: ''
+    comment: ''
+    hide: none
+    label: cmd_port_in
+    short_id: ''
+    type: intx
+    value: '5555'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1168, 80.0]
+    rotation: 0
+    state: enabled
+- name: p_cmd_out
+  id: parameter
+  parameters:
+    alias: ''
+    comment: ''
+    hide: none
+    label: cmd_port_out
+    short_id: ''
+    type: intx
+    value: '5556'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1288, 80.0]
+    rotation: 0
+    state: enabled
+- name: p_data_in
+  id: parameter
+  parameters:
+    alias: ''
+    comment: ''
+    hide: none
+    label: data_port_in
+    short_id: i
+    type: intx
+    value: '5558'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1416, 80.0]
+    rotation: 0
+    state: enabled
+- name: p_data_out
+  id: parameter
+  parameters:
+    alias: ''
+    comment: ''
+    hide: none
+    label: data_port_out
+    short_id: o
+    type: intx
+    value: '5557'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1536, 80.0]
     rotation: 0
     state: enabled
 - name: qtgui_freq_sink_x_0
@@ -1108,6 +1312,87 @@ blocks:
     bus_source: false
     bus_structure: null
     coordinate: [3112, 264.0]
+    rotation: 0
+    state: enabled
+- name: qtgui_freq_sink_x_0_0
+  id: qtgui_freq_sink_x
+  parameters:
+    affinity: ''
+    alias: ''
+    alpha1: '1.0'
+    alpha10: '1.0'
+    alpha2: '1.0'
+    alpha3: '1.0'
+    alpha4: '1.0'
+    alpha5: '1.0'
+    alpha6: '1.0'
+    alpha7: '1.0'
+    alpha8: '1.0'
+    alpha9: '1.0'
+    autoscale: 'False'
+    average: '1.0'
+    axislabels: 'True'
+    bw: samp_rate
+    color1: '"blue"'
+    color10: '"dark blue"'
+    color2: '"red"'
+    color3: '"green"'
+    color4: '"black"'
+    color5: '"cyan"'
+    color6: '"magenta"'
+    color7: '"yellow"'
+    color8: '"dark red"'
+    color9: '"dark green"'
+    comment: ''
+    ctrlpanel: 'False'
+    fc: '0'
+    fftsize: 2**12
+    freqhalf: 'True'
+    grid: 'False'
+    gui_hint: ''
+    label: Relative Gain
+    label1: ''
+    label10: ''''''
+    label2: ''''''
+    label3: ''''''
+    label4: ''''''
+    label5: ''''''
+    label6: ''''''
+    label7: ''''''
+    label8: ''''''
+    label9: ''''''
+    legend: 'True'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    name: '"RF_in"'
+    nconnections: '1'
+    norm_window: 'False'
+    showports: 'False'
+    tr_chan: '0'
+    tr_level: '0.0'
+    tr_mode: qtgui.TRIG_MODE_FREE
+    tr_tag: '""'
+    type: complex
+    units: dB
+    update_time: '0.10'
+    width1: '1'
+    width10: '1'
+    width2: '1'
+    width3: '1'
+    width4: '1'
+    width5: '1'
+    width6: '1'
+    width7: '1'
+    width8: '1'
+    width9: '1'
+    wintype: window.WIN_RECTANGULAR
+    ymax: '10'
+    ymin: '-140'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [336, 1112.0]
     rotation: 0
     state: enabled
 - name: qtgui_time_sink_x_2
@@ -1206,7 +1491,7 @@ blocks:
     bus_structure: null
     coordinate: [2928, 1088.0]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: taps
   id: epy_module
   parameters:
@@ -1216,12 +1501,12 @@ blocks:
       filter taps'
     source_code: "import numpy as np\r\nfrom gnuradio import filter\r\n\r\ndef generate_taps(samples_per_symbol,\
       \ bt):\r\n    samples_per_symbol = int(samples_per_symbol)\r\n    ntaps = 4\
-      \ * samples_per_symbol\r\n\r\n    # Generate Gaussian filter taps\r\n    gaussian_taps\
-      \ = filter.firdes.gaussian(\r\n        1,                       # gain\r\n \
-      \       samples_per_symbol,      # symbol_rate\r\n        bt,              \
-      \        # bandwidth * symbol time\r\n        ntaps                    # number\
-      \ of taps\r\n    )\r\n\r\n    taps = np.convolve(np.array(gaussian_taps), np.ones(samples_per_symbol))\r\
-      \n    return taps"
+      \ * samples_per_symbol\r\n    \r\n\r\n    # Generate Gaussian filter taps\r\n\
+      \    gaussian_taps = filter.firdes.gaussian(\r\n        1,                 \
+      \      # gain\r\n        samples_per_symbol,      # symbol_rate\r\n        bt,\
+      \                      # bandwidth * symbol time\r\n        ntaps          \
+      \          # number of taps\r\n    )\r\n\r\n    taps = np.convolve(np.array(gaussian_taps),\
+      \ np.ones(samples_per_symbol))\r\n    return taps"
   states:
     bus_sink: false
     bus_source: false
@@ -1234,9 +1519,9 @@ blocks:
   parameters:
     alias: ''
     comment: "Calculates the through-\nput in bps for the \nselected modcod"
-    source_code: "import json\r\nimport numpy as np\r\n\r\n\r\nfile_name = r\"C:\\\
+    source_code: "import json\r\nimport numpy as np\r\n\r\n\r\n#file_name = r\"C:\\\
       Users\\chri0\\Documents\\GitHub\\acm_protocol_p6\\hardware_Implementation\\\
-      phy\\physical_layer_transmitter\\MODCOD.json\"\r\n# file_name = \"MODCOD.json\"\
+      phy\\physical_layer_transmitter\\MODCOD.json\"\r\nfile_name = \"/home/jonasj2001//Documents/uni/EIT6/acm_protocol_p6/hardware_Implementation/phy/physical_layer_transmitter/MODCOD.json\"\
       \r\ndata:dict\r\nwith open(file_name, 'r') as f:\r\n    data = json.load(f)\r\
       \n\r\ndef modcod(bw, modcod):\r\n    spectral_eff = data[modcod][\"SPECT\"]\r\
       \n    throughput = spectral_eff * bw\r\n    return throughput\r\n"
@@ -1259,7 +1544,7 @@ blocks:
     bus_structure: null
     coordinate: [3120, 460.0]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: virtual_sink_1
   id: virtual_sink
   parameters:
@@ -1374,9 +1659,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [32, 1244.0]
+    coordinate: [64, 1152.0]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: virtual_source_1
   id: virtual_source
   parameters:
@@ -1536,7 +1821,7 @@ blocks:
 - name: zeromq_pub_msg_sink_0
   id: zeromq_pub_msg_sink
   parameters:
-    address: tcp://*:5556
+    address: f"tcp://*:{p_cmd_out}"
     affinity: ''
     alias: ''
     bind: 'True'
@@ -1552,7 +1837,7 @@ blocks:
 - name: zeromq_rep_sink_0
   id: zeromq_rep_sink
   parameters:
-    address: tcp://*:5557
+    address: f"tcp://*:{p_data_out}"
     affinity: ''
     alias: ''
     bind: 'True'
@@ -1569,10 +1854,30 @@ blocks:
     coordinate: [2992, 1228.0]
     rotation: 0
     state: enabled
+- name: zeromq_rep_sink_1
+  id: zeromq_rep_sink
+  parameters:
+    address: tcp://*:4001
+    affinity: ''
+    alias: ''
+    bind: 'True'
+    comment: ''
+    hwm: '-1'
+    pass_tags: 'False'
+    timeout: '100'
+    type: complex
+    vlen: '64'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [3184, 584.0]
+    rotation: 0
+    state: enabled
 - name: zeromq_req_source_0
   id: zeromq_req_source
   parameters:
-    address: tcp://localhost:5558
+    address: f"tcp://localhost:{p_data_in}"
     affinity: ''
     alias: ''
     bind: 'False'
@@ -1591,10 +1896,32 @@ blocks:
     coordinate: [24, 484.0]
     rotation: 0
     state: enabled
+- name: zeromq_req_source_1
+  id: zeromq_req_source
+  parameters:
+    address: tcp://localhost:4000
+    affinity: ''
+    alias: ''
+    bind: 'False'
+    comment: ''
+    hwm: '-1'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    pass_tags: 'False'
+    timeout: '100'
+    type: complex
+    vlen: '64'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [32, 768.0]
+    rotation: 0
+    state: enabled
 - name: zeromq_sub_msg_source_0
   id: zeromq_sub_msg_source
   parameters:
-    address: tcp://localhost:5555
+    address: f"tcp://localhost:{p_cmd_in}"
     affinity: ''
     alias: ''
     bind: 'False'
@@ -1616,16 +1943,22 @@ connections:
 - [analog_quadrature_demod_cf_0, '0', digital_symbol_sync_xx_1_0, '0']
 - [analog_quadrature_demod_cf_1, '0', digital_symbol_sync_xx_1_0_0, '0']
 - [analog_quadrature_demod_cf_2, '0', digital_symbol_sync_xx_1_0_0_0, '0']
+- [analog_random_source_x_0, '0', blocks_repack_bits_bb_0_0, '0']
 - [blocks_float_to_uchar_0, '0', epy_block_1_0_0_0, '0']
+- [blocks_repack_bits_bb_0, '0', blocks_null_sink_1, '0']
 - [blocks_repack_bits_bb_0, '0', zeromq_rep_sink_0, '0']
 - [blocks_repack_bits_bb_0_0, '0', blocks_throttle2_0, '0']
 - [blocks_repeat_0, '0', analog_frequency_modulator_fc_0_0, '0']
 - [blocks_stream_to_vector_0, '0', epy_block_2_0_0, '0']
+- [blocks_stream_to_vector_1, '0', zeromq_rep_sink_1, '0']
 - [blocks_throttle2_0, '0', epy_block_0, '0']
 - [blocks_throttle2_0, '0', virtual_sink_3, '0']
 - [blocks_uchar_to_float_1, '0', qtgui_time_sink_x_2, '0']
 - [blocks_uchar_to_float_1_0, '0', qtgui_time_sink_x_2, '1']
 - [blocks_vco_c_0, '0', epy_block_1_0_0, '0']
+- [blocks_vector_to_stream_0, '0', blocks_stream_to_vector_0, '0']
+- [blocks_vector_to_stream_0, '0', mmse_resampler_xx_1, '0']
+- [blocks_vector_to_stream_0, '0', qtgui_freq_sink_x_0_0, '0']
 - [digital_binary_slicer_fb_0, '0', epy_block_1_0_0_0, '2']
 - [digital_binary_slicer_fb_0_0, '0', epy_block_1_0_0_0, '1']
 - [digital_chunks_to_symbols_xx_0, '0', interp_fir_filter_xxx_0, '0']
@@ -1643,6 +1976,7 @@ connections:
 - [epy_block_0_0, '0', analog_quadrature_demod_cf_2, '0']
 - [epy_block_0_0, '1', analog_quadrature_demod_cf_1, '0']
 - [epy_block_0_0, '2', analog_quadrature_demod_cf_0, '0']
+- [epy_block_0_0, decim_out, blocks_msgpair_to_var_1_0, inpair]
 - [epy_block_0_0, msg_out, virtual_sink_2_1, '0']
 - [epy_block_1_0_0, '0', mmse_resampler_xx_0, '0']
 - [epy_block_1_0_0, msg_out, virtual_sink_2_0, '0']
@@ -1654,6 +1988,7 @@ connections:
 - [g4fsk_decoding_0, '0', blocks_float_to_uchar_0, '0']
 - [interp_fir_filter_xxx_0, '0', analog_frequency_modulator_fc_0, '0']
 - [interp_fir_filter_xxx_0_0, '0', blocks_vco_c_0, '0']
+- [mmse_resampler_xx_0, '0', blocks_stream_to_vector_1, '0']
 - [mmse_resampler_xx_0, '0', qtgui_freq_sink_x_0, '0']
 - [mmse_resampler_xx_0, '0', virtual_sink_0, '0']
 - [mmse_resampler_xx_1, '0', epy_block_0_0, '0']
@@ -1670,10 +2005,12 @@ connections:
 - [virtual_source_1_1_0_1, '0', zeromq_pub_msg_sink_0, in]
 - [virtual_source_1_1_0_1_0, '0', zeromq_pub_msg_sink_0, in]
 - [virtual_source_1_1_0_1_0_0, '0', zeromq_pub_msg_sink_0, in]
+- [virtual_source_2, '0', blocks_null_sink_0, '0']
 - [virtual_source_2, '0', blocks_uchar_to_float_1, '0']
 - [zeromq_req_source_0, '0', blocks_repack_bits_bb_0_0, '0']
+- [zeromq_req_source_1, '0', blocks_vector_to_stream_0, '0']
 - [zeromq_sub_msg_source_0, out, virtual_sink_1, '0']
 
 metadata:
   file_format: 1
-  grc_version: 3.10.9.2
+  grc_version: 3.10.10.0

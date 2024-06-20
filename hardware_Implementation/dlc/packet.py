@@ -94,7 +94,7 @@ class Framer():
     def scramble(self,):
          
         #start byte 11101001 = 0xE9
-        return b'\xAA'*2 +b'\xe9' + self.addACM(self.data)
+        return b'\xAA'*5 +b'\xe9' + self.addACM(self.data)
     
     def descramble(self):
         dat = self.toUTF(self.data)

@@ -97,9 +97,9 @@ class physical_layer_transmitter(gr.top_block, Qt.QWidget):
         ##################################################
 
         self.zeromq_sub_msg_source_0 = zeromq.sub_msg_source(f"tcp://localhost:{p_cmd_in}", 100, False)
-        self.zeromq_req_source_1 = zeromq.req_source(gr.sizeof_gr_complex, 64, 'tcp://localhost:4000', 100, False, (-1), False)
+        self.zeromq_req_source_1 = zeromq.req_source(gr.sizeof_gr_complex, 64, 'tcp://localhost:4001', 100, False, (-1), False)
         self.zeromq_req_source_0 = zeromq.req_source(gr.sizeof_char, 1, f"tcp://localhost:{p_data_in}", 100, False, (-1), False)
-        self.zeromq_rep_sink_1 = zeromq.rep_sink(gr.sizeof_gr_complex, 64, 'tcp://*:4001', 100, False, (-1), True)
+        self.zeromq_rep_sink_1 = zeromq.rep_sink(gr.sizeof_gr_complex, 64, 'tcp://*:4000', 100, False, (-1), True)
         self.zeromq_rep_sink_0 = zeromq.rep_sink(gr.sizeof_char, 1, f"tcp://*:{p_data_out}", 100, False, (-1), True)
         self.zeromq_pub_msg_sink_0 = zeromq.pub_msg_sink(f"tcp://*:{p_cmd_out}", 100, True)
         self.qtgui_freq_sink_x_0_0 = qtgui.freq_sink_c(
@@ -418,18 +418,19 @@ class physical_layer_transmitter(gr.top_block, Qt.QWidget):
 def argument_parser():
     parser = ArgumentParser()
     parser.add_argument(
-        "--p-cmd-in", dest="p_cmd_in", type=intx, default=5555,
+        "--p-cmd-in", dest="p_cmd_in", type=intx, default=5000,
         help="Set cmd_port_in [default=%(default)r]")
     parser.add_argument(
-        "--p-cmd-out", dest="p_cmd_out", type=intx, default=5556,
+        "--p-cmd-out", dest="p_cmd_out", type=intx, default=5001,
         help="Set cmd_port_out [default=%(default)r]")
     parser.add_argument(
-        "-i", "--p-data-in", dest="p_data_in", type=intx, default=5558,
+        "-i", "--p-data-in", dest="p_data_in", type=intx, default=5002,
         help="Set data_port_in [default=%(default)r]")
     parser.add_argument(
-        "-o", "--p-data-out", dest="p_data_out", type=intx, default=5557,
+        "-o", "--p-data-out", dest="p_data_out", type=intx, default=5003,
         help="Set data_port_out [default=%(default)r]")
     return parser
+
 
 
 def main(top_block_cls=physical_layer_transmitter, options=None):
