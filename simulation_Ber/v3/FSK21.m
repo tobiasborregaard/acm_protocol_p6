@@ -367,7 +367,9 @@ CONVdecodedx = viterbiDecoder(EncodedMSG);
 end
 function Uh = MSKMOD(ebno,U,T)
 msgSz = length(U);
-
+% Krishna Sankar M (2024). MSK modulation and demodulation 
+% (https://www.mathworks.com/matlabcentral/fileexchange/24570-msk-modulation-and-demodulation)
+% MATLAB File exchange
 Unrz =  2*U - 1; % Conversion to NRZ
 
 ai = kron(Unrz(1:2:end),ones(1,2*T));  % Even bits
